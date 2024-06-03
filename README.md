@@ -28,3 +28,8 @@ We welcome contributions from the community. If you have experience with LSP or
 Razor and would like to contribute, please open a Pull Request. If
 you encounter any issues or have suggestions for improvements, please open an
 Issue. Your input is valuable in making this plugin more robust and efficient.
+
+## Helping Out
+
+If you want to help out, then please see the discussion here, and leave a
+comment with your details in this [discussion](https://github.com/tris203/rzls.nvim/discussions/1).
