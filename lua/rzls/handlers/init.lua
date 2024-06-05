@@ -60,7 +60,7 @@ return {
 		end
 		local bufnr =
 			documentstore.get_virtual_bufnr(result.textDocument.uri, result._razor_hostDocumentVersion, "html")
-		if not bufnr or vim.api.nvim_buf_is_valid(bufnr) then
+		if not bufnr or not vim.api.nvim_buf_is_valid(bufnr) then
 			vim.print("No virtual buffer found")
 			return {}, nil
 		end
