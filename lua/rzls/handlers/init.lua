@@ -1,5 +1,6 @@
 local documentstore = require("rzls.documentstore")
 local lsp = require("rzls.utils.lsp")
+local dsu = require("rzls.utils.documentstore")
 
 local not_implemented = function(err, result, ctx, config)
 	vim.print("Called" .. ctx.method)
@@ -69,23 +70,35 @@ return {
 			return {}, nil
 		end
 		local response
-		local virtual_htmluri = "file://" .. vim.api.nvim_buf_get_name(bufnr)
+		local filename = vim.api.nvim_buf_get_name(bufnr)
+		local linecount = dsu.get_virtual_lines_count(bufnr)
+		local virtual_htmluri = "file://" .. filename
 		vim.print("Formatting virtual HTML buffer: " .. virtual_htmluri)
-		client.request(
-			"textDocument/formatting",
-			{ textDocument = { uri = virtual_htmluri }, options = result.options },
-			function(suberr, subresult, _subctx, _subconfig)
-				vim.print("Formatting virtual HTML buffer: " .. virtual_htmluri .. " DONE")
-				if suberr then
-					vim.print("Error in subformatting request")
-					vim.print(vim.inspect(suberr))
-					return {}, nil
-				end
-				response = subresult
+		vim.print("Range to line " .. linecount)
+		vim.print(vim.inspect(result.options))
+		client.request("textDocument/rangeFormatting", {
+			textDocument = { uri = virtual_htmluri },
+			range = {
+				start = {
+					line = 0,
+					character = 0,
+				},
+				["end"] = {
+					line = linecount - 1,
+					character = 0,
+				},
+			},
+			options = result.options,
+		}, function(suberr, subresult, _subctx, _subconfig)
+			vim.print("Formatting virtual HTML buffer: " .. virtual_htmluri .. " DONE")
+			if suberr then
+				vim.print("Error in subformatting request")
+				vim.print(vim.inspect(suberr))
 				return {}, nil
-			end,
-			bufnr
-		)
+			end
+			response = subresult
+			return {}, nil
+		end, bufnr)
 		local i = 0
 		while not response do
 			-- HACK: Make this not ugly and properly wait
@@ -101,6 +114,7 @@ return {
 		-- [WARN][2024-06-05 21:54:34] ...lsp/handlers.lua:626	"[LSP][LanguageServer.Formatting.FormattingContentValidationPass] A format operation is being abandoned because it would add or delete non-whitespace content."
 		-- [WARN][2024-06-05 21:54:34] ...lsp/handlers.lua:626	"[LSP][LanguageServer.Formatting.FormattingContentValidationPass] Edit at (0, 0)-(16, 0) adds the non-whitespace content 'REDACTED'."
 		-- Need to make the returned edits valid
+		vim.print(vim.inspect(response))
 		return { edits = response }, nil
 	end,
 	["razor/htmlOnTypeFormatting"] = not_implemented,

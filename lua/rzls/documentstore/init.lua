@@ -22,6 +22,7 @@ function M.update_csharp_vbuf(result)
 	vim.api.nvim_set_option_value("ft", "cs", { buf = targetBuf })
 	for _, change in ipairs(result.changes) do
 		if wasEmpty then
+			change.newText = change.newText .. "\n// " .. result.hostDocumentVersion
 			local lines = vim.fn.split(change.newText, "\n")
 			vim.api.nvim_buf_set_lines(targetBuf, 0, -1, false, lines)
 			return
@@ -34,6 +35,11 @@ function M.update_csharp_vbuf(result)
 		local newText = change.newText
 		local newContent = before .. newText .. after
 		local lines = vim.fn.split(newContent, "\n")
+		local lastLine = lines[#lines]
+		local version = string.match(lastLine, "// (%d+)")
+		if version ~= result.hostDocumentVersion then
+			lines[#lines] = "// " .. result.hostDocumentVersion
+		end
 		vim.api.nvim_buf_set_lines(targetBuf, 0, -1, false, lines)
 		vim.print(
 			"Updating C# buffer for "
@@ -55,6 +61,7 @@ function M.update_html_vbuf(result)
 	vim.api.nvim_set_option_value("ft", "html", { buf = targetBuf })
 	for _, change in ipairs(result.changes) do
 		if wasEmpty then
+			change.newText = change.newText .. "\n// " .. result.hostDocumentVersion
 			local lines = vim.fn.split(change.newText, "\n")
 			vim.api.nvim_buf_set_lines(targetBuf, 0, -1, false, lines)
 			return
@@ -67,6 +74,11 @@ function M.update_html_vbuf(result)
 		local newText = change.newText
 		local newContent = before .. newText .. after
 		local lines = vim.fn.split(newContent, "\n")
+		local lastLine = lines[#lines]
+		local version = string.match(lastLine, "// (%d+)")
+		if version ~= result.hostDocumentVersion then
+			lines[#lines] = "// " .. result.hostDocumentVersion
+		end
 		vim.api.nvim_buf_set_lines(targetBuf, 0, -1, false, lines)
 		vim.print(
 			"Updating HTML buffer for "
@@ -116,13 +128,13 @@ function M.get_virtual_bufnr(uri, version, type)
 	end
 	if type == "html" then
 		-- if file.virtualHTML.hostDocumentVersion == version then
-			return file.virtualHTML.buf
+		return file.virtualHTML.buf
 		-- end
 	end
 
 	if type == "csharp" then
 		-- if file.virtualCSharp.hostDocumentVersion == version then
-			return file.virtualCSharp.buf
+		return file.virtualCSharp.buf
 		-- end
 	end
 
