@@ -25,22 +25,23 @@ function M.update_csharp_vbuf(result)
 			change.newText = change.newText .. "\n// " .. result.hostDocumentVersion
 			local lines = vim.fn.split(change.newText, "\n")
 			vim.api.nvim_buf_set_lines(targetBuf, 0, -1, false, lines)
-			return
+			break
+		else
+			local currentText = table.concat(vim.api.nvim_buf_get_lines(targetBuf, 0, -1, false), "\n")
+			local startChar = change.span.start + 1
+			local endChar = startChar + change.span.length
+			local before = string.sub(currentText, 1, startChar - 1)
+			local after = string.sub(currentText, endChar, -1)
+			local newText = change.newText
+			local newContent = before .. newText .. after
+			local lines = vim.fn.split(newContent, "\n")
+			local lastLine = lines[#lines]
+			local version = string.match(lastLine, "// (%d+)")
+			if version ~= result.hostDocumentVersion then
+				lines[#lines] = "// " .. result.hostDocumentVersion
+			end
+			vim.api.nvim_buf_set_lines(targetBuf, 0, -1, false, lines)
 		end
-		local currentText = table.concat(vim.api.nvim_buf_get_lines(targetBuf, 0, -1, false), "\n")
-		local startChar = change.span.start + 1
-		local endChar = startChar + change.span.length
-		local before = string.sub(currentText, 1, startChar - 1)
-		local after = string.sub(currentText, endChar, -1)
-		local newText = change.newText
-		local newContent = before .. newText .. after
-		local lines = vim.fn.split(newContent, "\n")
-		local lastLine = lines[#lines]
-		local version = string.match(lastLine, "// (%d+)")
-		if version ~= result.hostDocumentVersion then
-			lines[#lines] = "// " .. result.hostDocumentVersion
-		end
-		vim.api.nvim_buf_set_lines(targetBuf, 0, -1, false, lines)
 		vim.print(
 			"Updating C# buffer for "
 			.. result.hostDocumentFilePath
@@ -64,22 +65,23 @@ function M.update_html_vbuf(result)
 			change.newText = change.newText .. "\n// " .. result.hostDocumentVersion
 			local lines = vim.fn.split(change.newText, "\n")
 			vim.api.nvim_buf_set_lines(targetBuf, 0, -1, false, lines)
-			return
+			break
+		else
+			local currentText = table.concat(vim.api.nvim_buf_get_lines(targetBuf, 0, -1, false), "\n")
+			local startChar = change.span.start + 1
+			local endChar = startChar + change.span.length
+			local before = string.sub(currentText, 1, startChar - 1)
+			local after = string.sub(currentText, endChar, -1)
+			local newText = change.newText
+			local newContent = before .. newText .. after
+			local lines = vim.fn.split(newContent, "\n")
+			local lastLine = lines[#lines]
+			local version = string.match(lastLine, "// (%d+)")
+			if version ~= result.hostDocumentVersion then
+				lines[#lines] = "// " .. result.hostDocumentVersion
+			end
+			vim.api.nvim_buf_set_lines(targetBuf, 0, -1, false, lines)
 		end
-		local currentText = table.concat(vim.api.nvim_buf_get_lines(targetBuf, 0, -1, false), "\n")
-		local startChar = change.span.start + 1
-		local endChar = startChar + change.span.length
-		local before = string.sub(currentText, 1, startChar - 1)
-		local after = string.sub(currentText, endChar, -1)
-		local newText = change.newText
-		local newContent = before .. newText .. after
-		local lines = vim.fn.split(newContent, "\n")
-		local lastLine = lines[#lines]
-		local version = string.match(lastLine, "// (%d+)")
-		if version ~= result.hostDocumentVersion then
-			lines[#lines] = "// " .. result.hostDocumentVersion
-		end
-		vim.api.nvim_buf_set_lines(targetBuf, 0, -1, false, lines)
 		vim.print(
 			"Updating HTML buffer for "
 			.. result.hostDocumentFilePath
