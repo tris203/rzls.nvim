@@ -49,7 +49,7 @@ vim.api.nvim_create_autocmd("BufRead", {
                 handlers = handlers,
             })
         end
-        require("rzls.documentstore").create_vbuf(vim.api.nvim_get_current_buf())
+        require("rzls.documentstore").create_vbufs(vim.api.nvim_get_current_buf())
         if lspClientID then
             vim.lsp.buf_attach_client(0, lspClientID)
 

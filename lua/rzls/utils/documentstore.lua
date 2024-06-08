@@ -1,6 +1,6 @@
 local M = {}
 
----comment
+--- Gets the line count of a virtual buffer
 ---@param buffnr integer
 ---@return integer
 function M.get_virtual_lines_count(buffnr)

@@ -15,7 +15,7 @@ local projectedCSharpSuffix = "__virtual.cs"
 local projectedDocuments = {}
 
 ---Updates the C# buffer with the new content
----@param result any
+---@param result VBufUpdate
 function M.update_csharp_vbuf(result)
     local wasEmpty = result.previousWasEmpty
     local targetBuf = projectedDocuments[result.hostDocumentFilePath].virtualCSharp.buf
@@ -53,9 +53,8 @@ function M.update_csharp_vbuf(result)
 end
 
 ---Updates the HTML buffer with the new content
----@param result any
+---@param result VBufUpdate
 function M.update_html_vbuf(result)
-    vim.print(vim.inspect(result))
     local wasEmpty = result.previousWasEmpty
     local targetBuf = projectedDocuments[result.hostDocumentFilePath].virtualHTML.buf
     vim.api.nvim_set_option_value("ft", "html", { buf = targetBuf })
@@ -91,9 +90,9 @@ function M.update_html_vbuf(result)
     end
 end
 
----comment
+---Creates virtual buffers for the given source buffer
 ---@param source_buf integer
-function M.create_vbuf(source_buf)
+function M.create_vbufs(source_buf)
     local currentFile = vim.api.nvim_buf_get_name(source_buf)
     vim.print("Creating virtual buffers for " .. currentFile)
     --open virtual files
@@ -109,11 +108,15 @@ function M.create_vbuf(source_buf)
     }
 end
 
+---Converts a RPC return URI to a file path
+---@param uri string
+---@return string
 local function uri_to_path(uri)
-    return string.gsub(uri, "file://", "")
+    local path = uri:gsub("file://", "")
+    return path
 end
 
----comment
+---Gets the virtual buffer number for the given URI
 ---@param uri string
 ---@param version integer
 ---@param type "html" | "csharp"

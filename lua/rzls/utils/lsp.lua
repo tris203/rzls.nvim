@@ -1,6 +1,6 @@
 local M = {}
 
----comment
+--- Returns the client for the LSP server with the given name
 ---@param name any
 ---@return vim.lsp.Client | nil
 function M.get_client(name)
