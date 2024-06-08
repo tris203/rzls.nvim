@@ -28,13 +28,11 @@ function M.update_csharp_vbuf(result)
 			break
 		else
 			local currentText = table.concat(vim.api.nvim_buf_get_lines(targetBuf, 0, -1, false), "\n")
-			local startChar = change.span.start + 1
-			local endChar = startChar + change.span.length
-			local before = string.sub(currentText, 1, startChar - 1)
-			local after = string.sub(currentText, endChar, -1)
+			local before = vim.fn.strpart(currentText, 0, change.span.start)
+			local after = vim.fn.strpart(currentText, change.span.start + change.span.length)
 			local newText = change.newText
 			local newContent = before .. newText .. after
-			local lines = vim.fn.split(newContent, "\n")
+			local lines = vim.fn.split(newContent, "\n", true)
 			local lastLine = lines[#lines]
 			local version = string.match(lastLine, "// (%d+)")
 			if version ~= result.hostDocumentVersion then
@@ -44,11 +42,11 @@ function M.update_csharp_vbuf(result)
 		end
 		vim.print(
 			"Updating C# buffer for "
-			.. result.hostDocumentFilePath
-			.. " from version "
-			.. projectedDocuments[result.hostDocumentFilePath].virtualCSharp.hostDocumentVersion
-			.. " to "
-			.. result.hostDocumentVersion
+				.. result.hostDocumentFilePath
+				.. " from version "
+				.. projectedDocuments[result.hostDocumentFilePath].virtualCSharp.hostDocumentVersion
+				.. " to "
+				.. result.hostDocumentVersion
 		)
 		projectedDocuments[result.hostDocumentFilePath].virtualCSharp.hostDocumentVersion = result.hostDocumentVersion
 	end
@@ -57,6 +55,7 @@ end
 ---Updates the HTML buffer with the new content
 ---@param result any
 function M.update_html_vbuf(result)
+	vim.print(vim.inspect(result))
 	local wasEmpty = result.previousWasEmpty
 	local targetBuf = projectedDocuments[result.hostDocumentFilePath].virtualHTML.buf
 	vim.api.nvim_set_option_value("ft", "html", { buf = targetBuf })
@@ -68,13 +67,11 @@ function M.update_html_vbuf(result)
 			break
 		else
 			local currentText = table.concat(vim.api.nvim_buf_get_lines(targetBuf, 0, -1, false), "\n")
-			local startChar = change.span.start + 1
-			local endChar = startChar + change.span.length
-			local before = string.sub(currentText, 1, startChar - 1)
-			local after = string.sub(currentText, endChar, -1)
+			local before = vim.fn.strpart(currentText, 0, change.span.start)
+			local after = vim.fn.strpart(currentText, change.span.start + change.span.length)
 			local newText = change.newText
 			local newContent = before .. newText .. after
-			local lines = vim.fn.split(newContent, "\n")
+			local lines = vim.fn.split(newContent, "\n", true)
 			local lastLine = lines[#lines]
 			local version = string.match(lastLine, "// (%d+)")
 			if version ~= result.hostDocumentVersion then
@@ -84,11 +81,11 @@ function M.update_html_vbuf(result)
 		end
 		vim.print(
 			"Updating HTML buffer for "
-			.. result.hostDocumentFilePath
-			.. " from version "
-			.. projectedDocuments[result.hostDocumentFilePath].virtualHTML.hostDocumentVersion
-			.. " to "
-			.. result.hostDocumentVersion
+				.. result.hostDocumentFilePath
+				.. " from version "
+				.. projectedDocuments[result.hostDocumentFilePath].virtualHTML.hostDocumentVersion
+				.. " to "
+				.. result.hostDocumentVersion
 		)
 		projectedDocuments[result.hostDocumentFilePath].virtualHTML.hostDocumentVersion = result.hostDocumentVersion
 	end
