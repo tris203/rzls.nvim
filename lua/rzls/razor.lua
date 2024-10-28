@@ -81,32 +81,4 @@ function M.map_to_document_ranges(lsp, bufnr, language_kind, ranges, cb)
     }, cb)
 end
 
-vim.api.nvim_create_user_command("RQ", function()
-    local client = nio.lsp.get_clients({ name = "rzls" })[1]
-
-    assert(client, "Could not find LSP client")
-
-    local buf = vim.api.nvim_get_current_buf()
-    local cursor_pos = vim.api.nvim_win_get_cursor(0)
-    local position = lsp_utils.cursor_to_lsp_position(cursor_pos)
-
-    nio.run(function()
-        local err, response = client.request.razor_languageQuery({
-            uri = vim.uri_from_bufnr(buf),
-            position = position --[[@as nio.lsp.types.Position]],
-        })
-        assert(not err, err)
-        assert(response)
-
-        vim.api.nvim_buf_add_highlight(
-            buf,
-            -1,
-            "QuickFixLine",
-            response.position.line,
-            response.position.character,
-            response.position.character + 3
-        )
-    end)
-end, {})
-
 return M
