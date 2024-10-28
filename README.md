@@ -18,6 +18,18 @@ You can pass a configuration table to the `setup` function. The configuration op
 - `capabilities`: A table that defines the capabilities of the LSP client.
 - `path`: The path to the rzls executable.
 
+You also must configure the [`roslyn.nvim`](https://github.com/seblj/roslyn.nvim) plugin
+to communicate with the razor LSP. To do so, you must pass the handlers defined in the
+`roslyn_handlers()` method:
+
+```lua
+require('roslyn').setup {
+    config = {
+        handlers = require('rzls').roslyn_handlers(),
+    },
+}
+```
+
 ## Under Construction
 
 This plugin is still under construction. The Razor Language Server (rzls) uses a
