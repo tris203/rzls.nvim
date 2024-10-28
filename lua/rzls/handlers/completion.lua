@@ -14,14 +14,14 @@ return function(err, result, ctx, config)
         config = config,
     })
 
-    local virtual_bufnr = documentstore.get_virtual_bufnr(
+    local virtual_document = documentstore.get_virtual_document(
         result.identifier.textDocumentIdentifier.uri,
         result.identifier.version,
         result.projectedKind
     )
-    assert(virtual_bufnr)
+    assert(virtual_document)
 
-    local virtual_client = vim.lsp.get_clients({ bufnr = virtual_bufnr })[1]
+    local virtual_client = virtual_document:get_lsp_client()
 
     --- "@" is not a valid trigger character for C# and HTML
     local trigger_character = result.context.triggerCharacter == "@" and result.context.triggerCharacter or nil
@@ -35,12 +35,12 @@ return function(err, result, ctx, config)
         },
         position = result.projectedPosition,
         textDocument = {
-            uri = vim.uri_from_bufnr(virtual_bufnr),
+            uri = vim.uri_from_bufnr(virtual_document.buf),
         },
     })
 
     local response =
-        virtual_client.request_sync(vim.lsp.protocol.Methods.textDocument_completion, params, nil, virtual_bufnr)
+        virtual_client.request_sync(vim.lsp.protocol.Methods.textDocument_completion, params, nil, virtual_document.buf)
 
     if response == nil then
         return nil,

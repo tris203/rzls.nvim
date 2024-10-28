@@ -1,4 +1,6 @@
 local utils = require("rzls.utils")
+local razor = require("rzls.razor")
+local nio = require("nio")
 
 ---@class rzls.VirtualDocument
 ---@field buf number
@@ -45,6 +47,26 @@ function VirtualDocument:update_content(result)
     end
 
     self.host_document_version = result.hostDocumentVersion
+end
+
+---@return vim.lsp.Client|nil
+function VirtualDocument:get_lsp_client()
+    local lsp_names = {
+        [razor.language_kinds.html] = "html",
+        [razor.language_kinds.csharp] = "roslyn",
+    }
+
+    return vim.lsp.get_clients({ bufnr = self.buf, name = lsp_names[self.kind] })[1]
+end
+
+---@return nio.lsp.Client|nil
+function VirtualDocument:get_nio_lsp_client()
+    local lsp_names = {
+        [razor.language_kinds.html] = "html",
+        [razor.language_kinds.csharp] = "roslyn",
+    }
+
+    return nio.lsp.get_clients({ bufnr = self.buf, name = lsp_names[self.kind] })[1]
 end
 
 ---@param index number

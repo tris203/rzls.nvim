@@ -113,7 +113,7 @@ end
 ---@param uri string
 ---@param version integer
 ---@param type razor.LanguageKind
----@return rzls.ProjectedDocument
+---@return rzls.VirtualDocument
 function M.get_virtual_document(uri, version, type)
     return virtual_documents[uri_to_path(uri)][type]
 end

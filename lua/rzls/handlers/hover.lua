@@ -33,14 +33,14 @@ return function(err, result, ctx, config)
 
         debug(language_query_response, "language_query_response")
 
-        local virtual_bufnr = documentstore.get_virtual_bufnr(
+        local virtual_document = documentstore.get_virtual_document(
             vim.uri_from_bufnr(bufnr),
             language_query_response.hostDocumentVersion,
             language_query_response.kind
         )
-        assert(virtual_bufnr)
+        assert(virtual_document)
 
-        local virtual_buf_client = nio.lsp.get_clients({ bufnr = virtual_bufnr })[1]
+        local virtual_buf_client = virtual_document:get_nio_lsp_client()
 
         if virtual_buf_client == nil then
             vim.lsp.handlers.hover(err, result, ctx, config)
@@ -49,7 +49,7 @@ return function(err, result, ctx, config)
 
         local err, hover_result = virtual_buf_client.request.textDocument_hover({
             textDocument = {
-                uri = debug(vim.uri_from_bufnr(virtual_bufnr), "textHover from virtual buffer uri"),
+                uri = debug(vim.uri_from_bufnr(virtual_document.buf), "textHover from virtual buffer uri"),
             },
             position = language_query_response.position,
         })
