@@ -11,4 +11,21 @@ function M.get_client(name)
     return client[1]
 end
 
+---@param bufnr integer
+---@return string
+function M.buf_to_uri(bufnr)
+    local file_path = vim.api.nvim_buf_get_name(bufnr)
+
+    return "file://" .. file_path
+end
+
+---@param cursor_pos integer[]
+---@return lsp.Position
+function M.cursor_to_lsp_position(cursor_pos)
+    return {
+        line = cursor_pos[1] - 1,
+        character = cursor_pos[2],
+    }
+end
+
 return M

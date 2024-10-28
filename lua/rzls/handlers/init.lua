@@ -1,6 +1,10 @@
 local documentstore = require("rzls.documentstore")
-local lsp = require("rzls.utils.lsp")
+local lsp_util = require("rzls.utils.lsp")
 local dsu = require("rzls.utils.documentstore")
+local razor = require("rzls.razor")
+local nio = require("nio")
+local debug = require("rzls.utils").debug
+local cmp = require("cmp")
 
 local not_implemented = function(err, result, ctx, config)
     vim.print("Called" .. ctx.method)
@@ -31,12 +35,10 @@ return {
 
     -- VS Windows and VS Code
     ["razor/updateCSharpBuffer"] = function(_err, result, _ctx, _config)
-        documentstore.update_csharp_vbuf(result)
-        --NOTE: ["razor/updateCSharpBuffer"] = DONE
+        documentstore.update_vbuf(result, razor.language_kinds.csharp)
     end,
     ["razor/updateHtmlBuffer"] = function(_err, result, _ctx, _config)
-        documentstore.update_html_vbuf(result)
-        --NOTE: ["razor/updateHtmlBuffer"] = DONE
+        documentstore.update_vbuf(result, razor.language_kinds.html)
     end,
     ["razor/provideCodeActions"] = not_implemented,
     ["razor/resolveCodeActions"] = not_implemented,
@@ -51,21 +53,43 @@ return {
         --TODO: Function that will look through the virtual HTML buffer and return color locations
         return {}, nil
     end,
-    ["razor/provideSemanticTokensRange"] = not_implemented,
+    ---@param err lsp.ResponseError
+    ---@param result razor.ProvideSemanticTokensParams
+    ---@param ctx lsp.HandlerContext
+    ---@param config? table
+    ---@return razor.ProvideSemanticTokensResponse|nil
+    ---@return lsp.ResponseError|nil
+    ["razor/provideSemanticTokensRange"] = function(err, result, ctx, config)
+        nio.run(function()
+            assert(not err, err)
+
+            local virtual_document = documentstore.get_virtual_document(
+                result.textDocument.uri,
+                result.requiredHostDocumentVersion,
+                razor.language_kinds.csharp
+            )
+            assert(virtual_document, "Could not find virtual document")
+
+            local virtual_buf_client = nio.lsp.get_clients({ bufnr = virtual_document.buf })[1]
+        end)
+    end,
     ["razor/foldingRange"] = not_implemented,
 
     ["razor/htmlFormatting"] = function(err, result, _ctx, _config)
         if err then
-            vim.print("Error in razor/htmlFormatting")
+            -- vim.print("Error in razor/htmlFormatting")
             return {}, nil
         end
-        local bufnr =
-            documentstore.get_virtual_bufnr(result.textDocument.uri, result._razor_hostDocumentVersion, "html")
+        local bufnr = documentstore.get_virtual_bufnr(
+            result.textDocument.uri,
+            result._razor_hostDocumentVersion,
+            razor.language_kinds.html
+        )
         if not bufnr or not vim.api.nvim_buf_is_valid(bufnr) then
-            vim.print("No virtual buffer found")
+            -- vim.print("No virtual buffer found")
             return {}, nil
         end
-        local client = lsp.get_client("html")
+        local client = lsp_util.get_client("html")
         if not client then
             return {}, nil
         end
@@ -73,9 +97,9 @@ return {
         local filename = vim.api.nvim_buf_get_name(bufnr)
         local linecount = dsu.get_virtual_lines_count(bufnr)
         local virtual_htmluri = "file://" .. filename
-        vim.print("Formatting virtual HTML buffer: " .. virtual_htmluri)
-        vim.print("Range to line " .. linecount)
-        vim.print(vim.inspect(result.options))
+        -- vim.print("Formatting virtual HTML buffer: " .. virtual_htmluri)
+        -- vim.print("Range to line " .. linecount)
+        -- vim.print(vim.inspect(result.options))
         client.request("textDocument/rangeFormatting", {
             textDocument = { uri = virtual_htmluri },
             range = {
@@ -90,10 +114,10 @@ return {
             },
             options = result.options,
         }, function(suberr, subresult, _subctx, _subconfig)
-            vim.print("Formatting virtual HTML buffer: " .. virtual_htmluri .. " DONE")
+            -- vim.print("Formatting virtual HTML buffer: " .. virtual_htmluri .. " DONE")
             if suberr then
-                vim.print("Error in subformatting request")
-                vim.print(vim.inspect(suberr))
+                -- vim.print("Error in subformatting request")
+                -- vim.print(vim.inspect(suberr))
                 return {}, nil
             end
             response = subresult
@@ -102,11 +126,11 @@ return {
         local i = 0
         while not response do
             -- HACK: Make this not ugly and properly wait
-            vim.print("Waiting for response")
+            -- vim.print("Waiting for response")
             vim.wait(100)
             i = i + 1
             if i > 100 then
-                vim.print("Timeout")
+                -- vim.print("Timeout")
                 break
             end
         end
@@ -114,7 +138,7 @@ return {
         -- [WARN][2024-06-05 21:54:34] ...lsp/handlers.lua:626	"[LSP][LanguageServer.Formatting.FormattingContentValidationPass] A format operation is being abandoned because it would add or delete non-whitespace content."
         -- [WARN][2024-06-05 21:54:34] ...lsp/handlers.lua:626	"[LSP][LanguageServer.Formatting.FormattingContentValidationPass] Edit at (0, 0)-(16, 0) adds the non-whitespace content 'REDACTED'."
         -- Need to make the returned edits valid
-        vim.print(vim.inspect(response))
+        -- vim.print(vim.inspect(response))
         return { edits = response }, nil
     end,
     ["razor/htmlOnTypeFormatting"] = not_implemented,
@@ -137,5 +161,11 @@ return {
     ["razor/csharpPullDiagnostics"] = not_implemented,
     ["textDocument/colorPresentation"] = not_supported,
 
-    ["razor/initialize"] = not_implemented,
+    ---@param err lsp.ResponseError
+    ---@param result razor.DelegatedCompletionParams
+    ---@param ctx lsp.HandlerContext
+    ---@param config table
+    ["razor/completion"] = require("rzls.handlers.completion"),
+
+    [vim.lsp.protocol.Methods.textDocument_hover] = require("rzls.handlers.hover"),
 }

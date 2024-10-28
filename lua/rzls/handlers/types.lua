@@ -22,7 +22,7 @@ local M = {}
 ---@field previousWasEmpty boolean
 ---@field hostDocumentFilePath string
 ---@field hostDocumentVersion number
----@field changes table<string, Change>A
+---@field changes Change[]
 
 ---@class Change
 ---@field span Span
