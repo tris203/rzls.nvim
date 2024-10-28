@@ -4,7 +4,6 @@ local dsu = require("rzls.utils.documentstore")
 local razor = require("rzls.razor")
 local nio = require("nio")
 local debug = require("rzls.utils").debug
-local cmp = require("cmp")
 
 local not_implemented = function(err, result, ctx, config)
     vim.print("Called" .. ctx.method)
