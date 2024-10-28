@@ -1,5 +1,5 @@
 local razor = require("rzls.razor")
-local debug = require("rzls.utils").debug
+local utils = require("rzls.utils")
 local VirtualDocument = require("rzls.virtual_document")
 
 ---@class rzls.ProjectedDocuments
@@ -66,16 +66,6 @@ function M.register_vbufs_by_path(current_file)
     end
 end
 
-local eols = {
-    dos = "\r\n",
-    unix = "\n",
-    mac = "\r",
-}
-
-local function buffer_eol(bufnr)
-    return eols[vim.bo[bufnr].fileformat]
-end
-
 ---@param result VBufUpdate
 ---@param language_kind razor.LanguageKind
 function M.update_vbuf(result, language_kind)
@@ -84,7 +74,7 @@ function M.update_vbuf(result, language_kind)
 
     virtual_document:update_content(result)
 
-    local buf_eol = buffer_eol(virtual_document.buf)
+    local buf_eol = utils.buffer_eol(virtual_document.buf)
     local lines = vim.fn.split(virtual_document.content, buf_eol, true)
     vim.api.nvim_buf_set_lines(virtual_document.buf, 0, -1, false, lines)
 end

@@ -41,7 +41,7 @@ function M.setup(config)
             local lsp_client_id = vim.lsp.start({
                 name = "rzls",
                 cmd = {
-                    "/home/neubaner/.local/share/nvim/rzls/rzls",
+                    rzlsconfig.path,
                     "--logLevel",
                     "0",
                     "--DelegateToCSharpOnDiagnosticsPublish",
@@ -68,8 +68,6 @@ function M.setup(config)
                 },
                 handlers = handlers,
             })
-
-            vim.lsp.log.set_level("INFO")
 
             if lsp_client_id == nil then
                 vim.notify("Could not start Razor LSP", vim.log.levels.ERROR, { title = "rzls.nvim" })

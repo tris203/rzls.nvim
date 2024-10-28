@@ -1,6 +1,5 @@
 ---@diagnostic disable: redefined-local
 local nio = require("nio")
-local lsp_util = require("rzls.utils.lsp")
 local documentstore = require("rzls.documentstore")
 local debug = require("rzls.utils").debug
 
@@ -27,7 +26,7 @@ return function(err, result, ctx, config)
 
         local err, language_query_response = client.request.razor_languageQuery({
             position = position,
-            uri = lsp_util.buf_to_uri(bufnr),
+            uri = vim.uri_from_bufnr(bufnr),
         })
         assert(not err, err)
         assert(language_query_response)
@@ -50,7 +49,7 @@ return function(err, result, ctx, config)
 
         local err, hover_result = virtual_buf_client.request.textDocument_hover({
             textDocument = {
-                uri = debug(lsp_util.buf_to_uri(virtual_bufnr), "textHover from virtual buffer uri"),
+                uri = debug(vim.uri_from_bufnr(virtual_bufnr), "textHover from virtual buffer uri"),
             },
             position = language_query_response.position,
         })
@@ -63,7 +62,7 @@ return function(err, result, ctx, config)
         end
 
         local err, response = client.request.razor_mapToDocumentRanges({
-            razorDocumentUri = lsp_util.buf_to_uri(bufnr),
+            razorDocumentUri = vim.uri_from_bufnr(bufnr),
             kind = language_query_response.kind,
             projectedRanges = { hover_result.range },
         })

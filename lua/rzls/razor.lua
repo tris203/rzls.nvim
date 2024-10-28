@@ -38,7 +38,7 @@ local M = {}
 
 ---@class razor.DelegatedCompletionParams
 ---@field identifier { textDocumentIdentifier: nio.lsp.types.TextDocumentIdentifier, version: integer }
----@field projectedProsition nio.lsp.types.Position
+---@field projectedPosition nio.lsp.types.Position
 ---@field projectedKind razor.LanguageKind
 ---@field context nio.lsp.types.CompletionContext
 ---@field provisionalTextEdit nio.lsp.types.TextEdit
@@ -64,7 +64,7 @@ M.language_kinds = {
 function M.language_query_sync(lsp, bufnr, position)
     return lsp.request_sync("razor/languageQuery", {
         position = position,
-        uri = lsp_utils.buf_to_uri(bufnr),
+        uri = vim.uri_from_bufnr(bufnr),
     }, nil, bufnr)
 end
 
@@ -75,7 +75,7 @@ end
 ---@param cb fun(err: lsp.ResponseError, response: razor.MapToDocumentRangesResponse)
 function M.map_to_document_ranges(lsp, bufnr, language_kind, ranges, cb)
     lsp.request("razor/mapToDocumentRanges", {
-        razorDocumentUri = lsp_utils.buf_to_uri(bufnr),
+        razorDocumentUri = vim.uri_from_bufnr(bufnr),
         kind = language_kind,
         projectedRanges = ranges,
     }, cb)
@@ -92,8 +92,8 @@ vim.api.nvim_create_user_command("RQ", function()
 
     nio.run(function()
         local err, response = client.request.razor_languageQuery({
-            uri = lsp_utils.buf_to_uri(buf),
-            position = position,
+            uri = vim.uri_from_bufnr(buf),
+            position = position --[[@as nio.lsp.types.Position]],
         })
         assert(not err, err)
         assert(response)

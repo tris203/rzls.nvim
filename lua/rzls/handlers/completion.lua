@@ -1,10 +1,5 @@
 local documentstore = require("rzls.documentstore")
-local lsp_util = require("rzls.utils.lsp")
-local dsu = require("rzls.utils.documentstore")
-local razor = require("rzls.razor")
-local nio = require("nio")
 local debug = require("rzls.utils").debug
-local cmp = require("cmp")
 
 ---@param err lsp.ResponseError
 ---@param result razor.DelegatedCompletionParams
@@ -33,17 +28,33 @@ return function(err, result, ctx, config)
     local trigger_kind = result.context.triggerCharacter == "@" and result.context.triggerKind or 1 -- Invoked
 
     ---@type lsp.CompletionParams
-    local params = {
+    local params = debug({
         context = {
             triggerKind = trigger_kind,
             triggerCharacter = trigger_character,
         },
-        position = result.projectedProsition,
-        textDocument = result.identifier.textDocumentIdentifier,
-    }
+        position = result.projectedPosition,
+        textDocument = {
+            uri = vim.uri_from_bufnr(virtual_bufnr),
+        },
+    })
 
     local response =
         virtual_client.request_sync(vim.lsp.protocol.Methods.textDocument_completion, params, nil, virtual_bufnr)
 
-    return response.result, response.err
+    if response == nil then
+        return nil,
+            vim.lsp.rpc_response_error(
+                vim.lsp.client_errors["INVALID_SERVER_MESSAGE"],
+                "Virtual LSP client returned no response"
+            )
+    end
+
+    if response.err ~= nil then
+        return nil, err
+    end
+
+    return response.result or {
+        items = {},
+    }
 end
