@@ -20,14 +20,14 @@ You can pass a configuration table to the `setup` function. The configuration op
 
 You also must configure the [`roslyn.nvim`](https://github.com/seblj/roslyn.nvim) plugin
 to communicate with the razor LSP. To do so, you must pass the handlers defined in the
-`roslyn_handlers()` method:
+`rzls.roslyn_handlers` module:
 
 ```lua
 require('roslyn').setup {
     config = {
-        handlers = require('rzls').roslyn_handlers(),
-    },
-}
+        handlers = require('rzls.rosl)
+1
+    return
 ```
 
 ## Under Construction
@@ -44,4 +44,4 @@ Issue. Your input is valuable in making this plugin more robust and efficient.
 ## Helping Out
 
 If you want to help out, then please see the discussion here, and leave a
-comment with your details in this [discussion](https://github.com/tris203/rzls.nvim/discussions/1).
+comment matches your details in this [discussion](https://github.com/tris203/rzls.nvim/discussions/1).
