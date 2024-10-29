@@ -34,9 +34,9 @@ end
 ---@param content string
 ---@param change Change
 local function get_edited_content(content, change)
-    content = content or ''
-    local before = content:sub(0, change.span.start)
-    local after = content:sub(change.span.start + change.span.start, -1)
+    content = content or ""
+    local before = content:sub(1, change.span.start)
+    local after = content:sub(change.span.start + change.span.length + 1, -1)
 
     return before .. change.newText .. after
 end
