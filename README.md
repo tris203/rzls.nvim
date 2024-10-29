@@ -10,13 +10,23 @@ to bring this support to Neovim.
 
 The LSP can be cloned and compiled from source from the `dotnet/razor` repo.
 
+## Dependencies
+
+You must install the following plugins:
+
+* [nvim-neotest/nvim-nio](https://github.com/nvim-neotest/nvim-nio)
+* [seblj/roslyn.nvim](https://github.com/seblj/roslyn.nvim)
+
+The `html-lsp` is also required to provide completions. You can install it with
+Mason and configure it via `nvim-lspconfig`.
+
 ## Integration
 
 You can pass a configuration table to the `setup` function. The configuration options are:
 
-- `on_attach`: A function that is called when the LSP client attaches to a buffer.
-- `capabilities`: A table that defines the capabilities of the LSP client.
-- `path`: The path to the rzls executable.
+* `on_attach`: A function that is called when the LSP client attaches to a buffer.
+* `capabilities`: A table that defines the capabilities of the LSP client.
+* `path`: The path to the rzls executable.
 
 You also must configure the [`roslyn.nvim`](https://github.com/seblj/roslyn.nvim) plugin
 to communicate with the razor LSP. To do so, you must pass the handlers defined in the
@@ -25,9 +35,9 @@ to communicate with the razor LSP. To do so, you must pass the handlers defined 
 ```lua
 require('roslyn').setup {
     config = {
-        handlers = require('rzls.rosl)
-1
-    return
+        handlers = require('rzls.roslyn_handlers')
+    }
+}
 ```
 
 ## Under Construction
