@@ -34,8 +34,9 @@ end
 ---@param content string
 ---@param change Change
 local function get_edited_content(content, change)
-    local before = vim.fn.strpart(content, 0, change.span.start)
-    local after = vim.fn.strpart(content, change.span.start + change.span.length)
+    content = content or ''
+    local before = content:sub(0, change.span.start)
+    local after = content:sub(change.span.start + change.span.start, -1)
 
     return before .. change.newText .. after
 end
