@@ -53,7 +53,7 @@ return function(err, result, ctx, config)
             },
             position = language_query_response.position,
         })
-        assert(not err, err)
+        assert(not err, vim.inspect(err))
         debug(hover_result, "text hover from virtual buffer")
 
         if hover_result == nil then
