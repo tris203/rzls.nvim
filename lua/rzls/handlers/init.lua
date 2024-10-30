@@ -32,10 +32,24 @@ return {
     ["razor/mapCode"] = not_implemented,
 
     -- VS Windows and VS Code
-    ["razor/updateCSharpBuffer"] = function(_err, result, _ctx, _config)
+    ---@param err lsp.ResponseError
+    ---@param result VBufUpdate
+    ---@param _ctx lsp.HandlerContext
+    ---@param _config? table
+    ---@return razor.ProvideSemanticTokensResponse|nil
+    ---@return lsp.ResponseError|nil
+    ["razor/updateCSharpBuffer"] = function(err, result, _ctx, _config)
+        assert(not err, vim.inspect(err))
         documentstore.update_vbuf(result, razor.language_kinds.csharp)
     end,
-    ["razor/updateHtmlBuffer"] = function(_err, result, _ctx, _config)
+    ---@param err lsp.ResponseError
+    ---@param result VBufUpdate
+    ---@param _ctx lsp.HandlerContext
+    ---@param _config? table
+    ---@return razor.ProvideSemanticTokensResponse|nil
+    ---@return lsp.ResponseError|nil
+    ["razor/updateHtmlBuffer"] = function(err, result, _ctx, _config)
+        assert(not err, vim.inspect(err))
         documentstore.update_vbuf(result, razor.language_kinds.html)
     end,
     ["razor/provideCodeActions"] = not_implemented,
