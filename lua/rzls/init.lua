@@ -1,12 +1,13 @@
-local M = {}
 local handlers = require("rzls.handlers")
+local documentstore = require("rzls.documentstore")
+
+local M = {}
 
 ---@class rzls.Config
 ---@field on_attach function
 ---@field capabilities table
 ---@field path string
 
-local rzlsconfig = {}
 ---@type rzls.Config
 local defaultConfg = {
     on_attach = function()
@@ -16,25 +17,29 @@ local defaultConfg = {
     path = "/tmp",
 }
 
+---@type lsp.ClientCapabilities
 local extraCapabilities = {
     colorProvider = true,
 }
 
 function M.setup(config)
-    rzlsconfig = vim.tbl_deep_extend("force", defaultConfg, config)
-end
+    local rzlsconfig = vim.tbl_deep_extend("force", defaultConfg, config)
+    vim.filetype.add({
+        extension = {
+            razor = "razor",
+        },
+    })
 
-local au = vim.api.nvim_create_augroup("rzls", { clear = true })
+    local au = vim.api.nvim_create_augroup("rzls", { clear = true })
 
-vim.api.nvim_create_autocmd("BufRead", {
-    pattern = "*.razor",
-    callback = function()
-        local lspClientID = nil
-        if not lspClientID then
-            lspClientID = vim.lsp.start({
+    vim.api.nvim_create_autocmd("FileType", {
+        pattern = "razor",
+        callback = function(ev)
+            local root_dir = vim.fn.getcwd()
+            local lsp_client_id = vim.lsp.start({
                 name = "rzls",
                 cmd = {
-                    rzlsconfig.path .. "/rzls",
+                    rzlsconfig.path,
                     "--logLevel",
                     "0",
                     "--DelegateToCSharpOnDiagnosticsPublish",
@@ -42,20 +47,59 @@ vim.api.nvim_create_autocmd("BufRead", {
                     "--UpdateBuffersForClosedDocuments",
                     "true",
                 },
-                root_dir = vim.fn.getcwd(),
-                on_attach = rzlsconfig.on_attach,
+                on_init = function(client, _initialize_result)
+                    M.load_existing_files(root_dir)
+                    M.watch_new_files(root_dir)
+                    documentstore.initialize(client, root_dir)
+                end,
+                root_dir = root_dir,
+                on_attach = function(client, bufnr)
+                    documentstore.initialize(client, root_dir)
+                    documentstore.register_vbufs(bufnr)
+                    rzlsconfig.on_attach(client, bufnr)
+                end,
                 capabilities = vim.tbl_deep_extend("force", rzlsconfig.capabilities, extraCapabilities),
-                settings = { razor = vim.empty_dict(), html = vim.empty_dict() },
+                settings = {
+                    ["razor.server.trace"] = "Trace",
+                    html = vim.empty_dict(),
+                    razor = vim.empty_dict(),
+                    ["vs.editor.razor"] = vim.empty_dict(),
+                },
                 handlers = handlers,
             })
-        end
-        require("rzls.documentstore").create_vbufs(vim.api.nvim_get_current_buf())
-        if lspClientID then
-            vim.lsp.buf_attach_client(0, lspClientID)
 
-            vim.notify("Razor LSP attached", vim.log.levels.INFO, { title = "rzls.nvim" })
+            if lsp_client_id == nil then
+                vim.notify("Could not start Razor LSP", vim.log.levels.ERROR, { title = "rzls.nvim" })
+                return
+            end
+
+            vim.lsp.buf_attach_client(ev.buf, lsp_client_id)
+        end,
+        group = au,
+    })
+end
+
+function M.load_existing_files(path)
+    local files = vim.fn.glob(path .. "/**/*.razor", true, true)
+    for _, file in ipairs(files) do
+        documentstore.register_vbufs_by_path(file)
+    end
+end
+
+function M.watch_new_files(path)
+    local w = vim.uv.new_fs_event()
+    assert(w)
+
+    local fullpath = vim.fn.fnamemodify(path, ":p")
+
+    w:start(fullpath, {
+        recursive = true,
+    }, function(err, filename, _events)
+        assert(not err, err)
+        vim.print("file modified:" .. filename)
+        if vim.fn.fnamemodify(filename, ":e") == "razor" then
+            documentstore.register_vbufs_by_path(filename)
         end
-    end,
-    group = au,
-})
+    end)
+end
 return M
