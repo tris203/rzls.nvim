@@ -19,9 +19,10 @@ return function(err, result, ctx, config)
         result.identifier.version,
         result.projectedKind
     )
-    assert(virtual_document)
+    assert(virtual_document, "No virtual document found")
 
     local virtual_client = virtual_document:get_lsp_client()
+    assert(virtual_client, "No virtual client found")
 
     --- "@" is not a valid trigger character for C# and HTML
     local trigger_character = result.context.triggerCharacter == "@" and result.context.triggerCharacter or nil

@@ -3,7 +3,6 @@ local lsp_util = require("rzls.utils.lsp")
 local dsu = require("rzls.utils.documentstore")
 local razor = require("rzls.razor")
 local nio = require("nio")
-local debug = require("rzls.utils").debug
 
 local not_implemented = function(err, result, ctx, config)
     vim.print("Called" .. ctx.method)
@@ -42,23 +41,23 @@ return {
     ["razor/provideCodeActions"] = not_implemented,
     ["razor/resolveCodeActions"] = not_implemented,
     ["razor/provideHtmlColorPresentation"] = not_supported,
-    ["razor/provideHtmlDocumentColor"] = function(err, result, _ctx, _config)
+    ["razor/provideHtmlDocumentColor"] = function(err, _result, _ctx, _config)
         if err then
             vim.print("Error in razor/provideHtmlDocumentColor")
             return {}, nil
         end
-        local _targetDoc = result.textDocument.uri
-        local _targetVersion = result._razor_hostDocumentVersion
+        -- local _targetDoc = result.textDocument.uri
+        -- local _targetVersion = result._razor_hostDocumentVersion
         --TODO: Function that will look through the virtual HTML buffer and return color locations
         return {}, nil
     end,
     ---@param err lsp.ResponseError
     ---@param result razor.ProvideSemanticTokensParams
-    ---@param ctx lsp.HandlerContext
-    ---@param config? table
+    ---@param _ctx lsp.HandlerContext
+    ---@param _config? table
     ---@return razor.ProvideSemanticTokensResponse|nil
     ---@return lsp.ResponseError|nil
-    ["razor/provideSemanticTokensRange"] = function(err, result, ctx, config)
+    ["razor/provideSemanticTokensRange"] = function(err, result, _ctx, _config)
         nio.run(function()
             assert(not err, err)
 
@@ -69,7 +68,7 @@ return {
             )
             assert(virtual_document, "Could not find virtual document")
 
-            local virtual_buf_client = nio.lsp.get_clients({ bufnr = virtual_document.buf })[1]
+            -- local virtual_buf_client = nio.lsp.get_clients({ bufnr = virtual_document.buf })[1]
         end)
     end,
     ["razor/foldingRange"] = not_implemented,
@@ -159,12 +158,6 @@ return {
     -- Called to get C# diagnostics from Roslyn when publishing diagnostics for VS Code
     ["razor/csharpPullDiagnostics"] = not_implemented,
     ["textDocument/colorPresentation"] = not_supported,
-
-    ---@param err lsp.ResponseError
-    ---@param result razor.DelegatedCompletionParams
-    ---@param ctx lsp.HandlerContext
-    ---@param config table
     ["razor/completion"] = require("rzls.handlers.completion"),
-
     [vim.lsp.protocol.Methods.textDocument_hover] = require("rzls.handlers.hover"),
 }

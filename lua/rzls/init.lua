@@ -1,7 +1,5 @@
 local handlers = require("rzls.handlers")
 local documentstore = require("rzls.documentstore")
-local razor = require("rzls.razor")
-local debug = require("rzls.utils").debug
 
 local M = {}
 
@@ -49,7 +47,7 @@ function M.setup(config)
                     "--UpdateBuffersForClosedDocuments",
                     "true",
                 },
-                on_init = function(client, initialize_result)
+                on_init = function(client, _initialize_result)
                     M.watch_new_files(root_dir)
                     documentstore.initialize(client, root_dir)
                 end,
@@ -88,7 +86,7 @@ function M.watch_new_files(path)
 
     w:start(fullpath, {
         recursive = true,
-    }, function(err, filename, events)
+    }, function(err, filename, _events)
         assert(not err, err)
         vim.print("file modified:" .. filename)
         if vim.fn.fnamemodify(filename, ":e") == "razor" then

@@ -96,10 +96,10 @@ end
 
 ---Gets the virtual buffer number for the given URI
 ---@param uri string
----@param version integer
+---@param _version integer
 ---@param type razor.LanguageKind
 ---@return integer | nil
-function M.get_virtual_bufnr(uri, version, type)
+function M.get_virtual_bufnr(uri, _version, type)
     local path = uri_to_path(uri)
     local file = virtual_documents[path]
 
@@ -111,10 +111,10 @@ function M.get_virtual_bufnr(uri, version, type)
 end
 
 ---@param uri string
----@param version integer
+---@param _version integer
 ---@param type razor.LanguageKind
 ---@return rzls.VirtualDocument
-function M.get_virtual_document(uri, version, type)
+function M.get_virtual_document(uri, _version, type)
     return virtual_documents[uri_to_path(uri)][type]
 end
 
@@ -144,8 +144,7 @@ function M.initialize(client, root_dir)
         end
     end
 
-    -- TODO: generate a random pipe name
-    local pipe_name = "686ce9f8-8a77-431f-8668-5751de453a57"
+    local pipe_name = utils.uuid()
 
     ---@type rzls.ProjectedDocument
     local virtual_document = vim.tbl_values(virtual_documents)[1]

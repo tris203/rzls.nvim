@@ -1,7 +1,5 @@
-local lsp_utils = require("rzls.utils.lsp")
-local nio = require("nio")
-
 local M = {}
+---@module "nio"
 
 ---@class razor.LanguageQueryParams
 ---@field position nio.lsp.types.Position
@@ -55,6 +53,13 @@ M.language_kinds = {
     csharp = 1,
     html = 2,
     razor = 3,
+}
+
+---@enum razor.LSPClientName
+M.lsp_names = {
+    [M.language_kinds.html] = "html",
+    [M.language_kinds.csharp] = "roslyn",
+    [M.language_kinds.razor] = "rzls",
 }
 
 ---@param lsp vim.lsp.Client

@@ -24,11 +24,11 @@ return function(err, result, ctx, config)
         local client = nio.lsp.get_client_by_id(ctx.client_id)
         assert(client, "Could not find Razor Client")
 
-        local err, language_query_response = client.request.razor_languageQuery({
+        local ierr, language_query_response = client.request.razor_languageQuery({
             position = position,
             uri = vim.uri_from_bufnr(bufnr),
         })
-        assert(not err, err)
+        assert(not ierr, vim.inspect(ierr))
         assert(language_query_response)
 
         debug(language_query_response, "language_query_response")
@@ -47,13 +47,13 @@ return function(err, result, ctx, config)
             return
         end
 
-        local err, hover_result = virtual_buf_client.request.textDocument_hover({
+        local errh, hover_result = virtual_buf_client.request.textDocument_hover({
             textDocument = {
                 uri = debug(vim.uri_from_bufnr(virtual_document.buf), "textHover from virtual buffer uri"),
             },
             position = language_query_response.position,
         })
-        assert(not err, vim.inspect(err))
+        assert(not errh, vim.inspect(errh))
         debug(hover_result, "text hover from virtual buffer")
 
         if hover_result == nil then
@@ -61,12 +61,12 @@ return function(err, result, ctx, config)
             return
         end
 
-        local err, response = client.request.razor_mapToDocumentRanges({
+        local errm, response = client.request.razor_mapToDocumentRanges({
             razorDocumentUri = vim.uri_from_bufnr(bufnr),
             kind = language_query_response.kind,
             projectedRanges = { hover_result.range },
         })
-        assert(not err, err)
+        assert(not errm, vim.inspect(errm))
 
         debug(response, "range map")
         if response ~= nil and response.ranges[1] ~= nil then
