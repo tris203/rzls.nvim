@@ -47,10 +47,16 @@ local function get_or_create_buffer_for_filepath(filepath, filetype)
     return buf
 end
 
+---Registers virtual buffers for the given file path
+---@param current_file string
 function M.register_vbufs_by_path(current_file)
     -- open virtual files
     --
     virtual_documents[current_file] = virtual_documents[current_file] or {}
+
+    if vim.tbl_isempty(virtual_documents[current_file]) then
+        virtual_documents[current_file] = VirtualDocument:new(current_file, razor.language_kinds.razor)
+    end
 
     if virtual_documents[current_file][razor.language_kinds.csharp] == nil then
         local buf = get_or_create_buffer_for_filepath(current_file .. virtual_suffixes.csharp, "cs")
@@ -92,22 +98,6 @@ end
 local function uri_to_path(uri)
     local path = uri:gsub("file://", "")
     return path
-end
-
----Gets the virtual buffer number for the given URI
----@param uri string
----@param _version integer
----@param type razor.LanguageKind
----@return integer | nil
-function M.get_virtual_bufnr(uri, _version, type)
-    local path = uri_to_path(uri)
-    local file = virtual_documents[path]
-
-    if not file then
-        return nil
-    end
-
-    return file[type].buf
 end
 
 ---@param uri string

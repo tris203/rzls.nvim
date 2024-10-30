@@ -11,19 +11,31 @@ local VirtualDocument = {}
 
 VirtualDocument.__index = VirtualDocument
 
----@param bufnr integer
+---@param bufnr integer|string
 ---@param kind razor.LanguageKind
 ---@return rzls.VirtualDocument
 function VirtualDocument:new(bufnr, kind)
-    local virtual_document = setmetatable({
-        buf = bufnr,
-        host_document_version = 0,
-        content = "",
-        path = vim.api.nvim_buf_get_name(bufnr),
-        kind = kind,
-    }, self)
-
-    return virtual_document
+    if type(bufnr) == "string" then
+        -- TODO: should we open the buffer here to attach rzls to create the vbufs?
+        local virtual_document = setmetatable({
+            buf = -1,
+            host_document_version = 0,
+            content = "",
+            path = bufnr,
+            kind = kind,
+        }, self)
+        return virtual_document
+    elseif type(bufnr) == "number" then
+        local virtual_document = setmetatable({
+            buf = bufnr,
+            host_document_version = 0,
+            content = "",
+            path = vim.api.nvim_buf_get_name(bufnr),
+            kind = kind,
+        }, self)
+        return virtual_document
+    end
+    error("Invalid buffer number")
 end
 
 ---@param content string

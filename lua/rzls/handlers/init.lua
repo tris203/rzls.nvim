@@ -78,11 +78,12 @@ return {
             -- vim.print("Error in razor/htmlFormatting")
             return {}, nil
         end
-        local bufnr = documentstore.get_virtual_bufnr(
+        local vd = documentstore.get_virtual_document(
             result.textDocument.uri,
             result._razor_hostDocumentVersion,
             razor.language_kinds.html
         )
+        local bufnr = vd.buf
         if not bufnr or not vim.api.nvim_buf_is_valid(bufnr) then
             -- vim.print("No virtual buffer found")
             return {}, nil

@@ -48,6 +48,7 @@ function M.setup(config)
                     "true",
                 },
                 on_init = function(client, _initialize_result)
+                    M.load_existing_files(root_dir)
                     M.watch_new_files(root_dir)
                     documentstore.initialize(client, root_dir)
                 end,
@@ -76,6 +77,13 @@ function M.setup(config)
         end,
         group = au,
     })
+end
+
+function M.load_existing_files(path)
+    local files = vim.fn.glob(path .. "/**/*.razor", true, true)
+    for _, file in ipairs(files) do
+        documentstore.register_vbufs_by_path(file)
+    end
 end
 
 function M.watch_new_files(path)
