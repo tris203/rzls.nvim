@@ -1,18 +1,11 @@
 local documentstore = require("rzls.documentstore")
-local debug = require("rzls.utils").debug
 
 ---@param err lsp.ResponseError
 ---@param result razor.DelegatedCompletionParams
----@param ctx lsp.HandlerContext
----@param config table
-return function(err, result, ctx, config)
+---@param _ctx lsp.HandlerContext
+---@param _config table
+return function(err, result, _ctx, _config)
     assert(not err, err)
-    debug({
-        err = err,
-        result = result,
-        ctx = ctx,
-        config = config,
-    })
 
     local virtual_document = documentstore.get_virtual_document(
         result.identifier.textDocumentIdentifier.uri,
@@ -28,8 +21,8 @@ return function(err, result, ctx, config)
     local trigger_character = result.context.triggerCharacter == "@" and result.context.triggerCharacter or nil
     local trigger_kind = result.context.triggerCharacter == "@" and result.context.triggerKind or 1 -- Invoked
 
-    ---@type lsp.CompletionParams
-    local params = debug({
+    ---@type lsp.CompletionParams | nio.lsp.types.CompletionParams
+    local params = {
         context = {
             triggerKind = trigger_kind,
             triggerCharacter = trigger_character,
@@ -38,7 +31,7 @@ return function(err, result, ctx, config)
         textDocument = {
             uri = vim.uri_from_bufnr(virtual_document.buf),
         },
-    })
+    }
 
     local response =
         virtual_client.request_sync(vim.lsp.protocol.Methods.textDocument_completion, params, nil, virtual_document.buf)
