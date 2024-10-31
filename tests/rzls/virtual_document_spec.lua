@@ -4,13 +4,14 @@ local razor = require("rzls.razor")
 local eq = assert.are.same
 
 describe("virtual document", function()
+    local vd
+    local path = "tests/rzls/fixtures/vdtest.razor__virtual.html"
+    local full_path = vim.loop.cwd() .. "/" .. path
+    vim.cmd.edit({ args = { path } })
+    local ls = vim.fn.getbufinfo({ buflisted = 1 })
+    local bufnr = ls[1].bufnr
     it("create virtual document", function()
-        local path = "tests/rzls/fixtures/test.razor__virtual.html"
-        local full_path = vim.loop.cwd() .. "/" .. path
-        vim.cmd.edit({ args = { path } })
-        local ls = vim.fn.getbufinfo({ buflisted = 1 })
-        local bufnr = ls[1].bufnr
-        local vd = virtual_document:new(bufnr, razor.language_kinds.html)
+        vd = virtual_document:new(bufnr, razor.language_kinds.html)
         eq({
             buf = bufnr,
             host_document_version = 0,
@@ -18,7 +19,9 @@ describe("virtual document", function()
             kind = razor.language_kinds.html,
             path = full_path,
         }, vd)
+    end)
 
+    it("update virtual document", function()
         vd:update_content({
             previousWasEmpty = true,
             hostDocumentVersion = 1,
