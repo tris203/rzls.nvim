@@ -1,6 +1,5 @@
 local documentstore = require("rzls.documentstore")
-local lsp_util = require("rzls.utils.lsp")
-local dsu = require("rzls.utils.documentstore")
+local format = require("rzls.utils.format")
 local razor = require("rzls.razor")
 local nio = require("nio")
 
@@ -89,70 +88,50 @@ return {
 
     ["razor/htmlFormatting"] = function(err, result, _ctx, _config)
         if err then
-            -- vim.print("Error in razor/htmlFormatting")
+            vim.notify("Error in razor/htmlFormatting", vim.log.levels.ERROR)
             return {}, nil
         end
-        local vd = documentstore.get_virtual_document(
+
+        local virtual_document = documentstore.get_virtual_document(
             result.textDocument.uri,
             result._razor_hostDocumentVersion,
             razor.language_kinds.html
         )
-        local bufnr = vd.buf
-        if not bufnr or not vim.api.nvim_buf_is_valid(bufnr) then
-            -- vim.print("No virtual buffer found")
-            return {}, nil
-        end
-        local client = lsp_util.get_client("html")
+        assert(virtual_document, "Could not find html virtual document")
+
+        local client = virtual_document:get_lsp_client()
         if not client then
             return {}, nil
         end
-        local response
-        local filename = vim.api.nvim_buf_get_name(bufnr)
-        local linecount = dsu.get_virtual_lines_count(bufnr)
-        local virtual_htmluri = "file://" .. filename
-        -- vim.print("Formatting virtual HTML buffer: " .. virtual_htmluri)
-        -- vim.print("Range to line " .. linecount)
-        -- vim.print(vim.inspect(result.options))
-        client.request("textDocument/rangeFormatting", {
-            textDocument = { uri = virtual_htmluri },
+
+        local line_count = vim.api.nvim_buf_line_count(virtual_document.buf)
+        local last_line = vim.api.nvim_buf_get_lines(virtual_document.buf, -2, -1, false)[1] or ""
+        local range_formatting_response = client.request_sync("textDocument/rangeFormatting", {
+            textDocument = vim.lsp.util.make_text_document_params(virtual_document.buf),
             range = {
                 start = {
                     line = 0,
                     character = 0,
                 },
                 ["end"] = {
-                    line = linecount - 1,
-                    character = 0,
+                    line = line_count - 1,
+                    character = last_line:len(),
                 },
             },
             options = result.options,
-        }, function(suberr, subresult, _subctx, _subconfig)
-            -- vim.print("Formatting virtual HTML buffer: " .. virtual_htmluri .. " DONE")
-            if suberr then
-                -- vim.print("Error in subformatting request")
-                -- vim.print(vim.inspect(suberr))
-                return {}, nil
-            end
-            response = subresult
-            return {}, nil
-        end, bufnr)
-        local i = 0
-        while not response do
-            -- HACK: Make this not ugly and properly wait
-            -- vim.print("Waiting for response")
-            vim.wait(100)
-            i = i + 1
-            if i > 100 then
-                -- vim.print("Timeout")
-                break
-            end
+        }, nil, virtual_document.buf)
+        assert(range_formatting_response, "textDocument/rangeFormatting from virtual LSP return no error or result")
+
+        if range_formatting_response.err ~= nil then
+            return nil, err
         end
-        --TODO: This works byt the rzr lsp complains that
-        -- [WARN][2024-06-05 21:54:34] ...lsp/handlers.lua:626	"[LSP][LanguageServer.Formatting.FormattingContentValidationPass] A format operation is being abandoned because it would add or delete non-whitespace content."
-        -- [WARN][2024-06-05 21:54:34] ...lsp/handlers.lua:626	"[LSP][LanguageServer.Formatting.FormattingContentValidationPass] Edit at (0, 0)-(16, 0) adds the non-whitespace content 'REDACTED'."
-        -- Need to make the returned edits valid
-        -- vim.print(vim.inspect(response))
-        return { edits = response }, nil
+
+        local edits = {}
+        for _, html_edit in ipairs(range_formatting_response.result) do
+            vim.list_extend(edits, format.compute_minimal_edits(virtual_document.buf, html_edit))
+        end
+
+        return { edits = edits }
     end,
     ["razor/htmlOnTypeFormatting"] = not_implemented,
     ["razor/simplifyMethod"] = not_implemented,

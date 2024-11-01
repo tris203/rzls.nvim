@@ -144,7 +144,7 @@ function M.initialize(client, root_dir)
             pipeName = pipe_name,
         })
 
-        -- Roslyn might not have been initialized yet. Repeat every seconds until
+        -- Roslyn might not have been initialized yet. Repeat every second until
         -- we can send the notification
         if not initialized then
             local timer = vim.uv.new_timer()
