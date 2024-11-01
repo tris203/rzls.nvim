@@ -16,9 +16,8 @@ VirtualDocument.__index = VirtualDocument
 ---@return rzls.VirtualDocument
 function VirtualDocument:new(bufnr, kind)
     if type(bufnr) == "string" then
-        -- TODO: should we open the buffer here to attach rzls to create the vbufs?
         local virtual_document = setmetatable({
-            buf = -1,
+            buf = vim.uri_to_bufnr("file://" .. bufnr),
             host_document_version = 0,
             content = "",
             path = bufnr,
