@@ -1,4 +1,6 @@
 local format = require("rzls.utils.format")
+---@diagnostic disable-next-line: undefined-field
+local eq = assert.are.same
 
 ---@return lsp.TextEdit
 local function lsp_edit(new_text, start_line, start_char, end_line, end_char)
@@ -52,6 +54,6 @@ describe("format", function()
             lsp_edit("", 2, 0, 2, 8),
         }
 
-        assert.are.same(expected, minimal_edits)
+        eq(expected, minimal_edits)
     end)
 end)
