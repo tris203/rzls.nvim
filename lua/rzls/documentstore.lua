@@ -21,8 +21,6 @@ local virtual_suffixes = {
 ---@type rzls.VirtualDocument<string, table<razor.LanguageKind, rzls.VirtualDocument>>
 local virtual_documents = {}
 
-local roslyn_ready = false
-
 ---@param name string
 ---@return number | nil
 local function buffer_with_name(name)
@@ -102,59 +100,29 @@ end
 ---@param uri string
 ---@param _version integer
 ---@param type razor.LanguageKind
----@return rzls.VirtualDocument
+---@return rzls.VirtualDocument | nil
 function M.get_virtual_document(uri, _version, type)
-    return virtual_documents[uri_to_path(uri)][type]
+    local doc = virtual_documents[uri_to_path(uri)]
+    return doc and doc[type]
 end
 
-local document_generation_initialized = false
-
+local pipe_name
 ---@param client vim.lsp.Client
-function M.initialize(client, root_dir)
-    if not roslyn_ready or document_generation_initialized then
-        return
-    end
-
-    document_generation_initialized = true
-
-    local razor_files = vim.fs.find(function(name)
-        return name:match(".*%.razor$")
-    end, {
-        type = "file",
-        limit = math.huge,
-        path = root_dir,
-    })
-
-    local opened_documents = vim.tbl_keys(virtual_documents)
-    for _, razor_file in ipairs(razor_files) do
-        if not vim.tbl_contains(opened_documents, razor_file) then
-            local razor_buf = get_or_create_buffer_for_filepath(razor_file, "razor")
-            vim.api.nvim_buf_call(razor_buf, vim.cmd.edit)
-        end
-    end
-
-    local pipe_name = utils.uuid()
-
-    ---@type rzls.ProjectedDocument
-    local virtual_document = vim.tbl_values(virtual_documents)[1]
+function M.initialize(client)
+    pipe_name = utils.uuid()
 
     local function initialize_roslyn()
-        local initialized = vim.lsp.buf_notify(virtual_document.buf, "razor/initialize", {
+        local roslyn_client = vim.lsp.get_clients({ name = "roslyn" })[1]
+        roslyn_client.notify("razor/initialize", {
             pipeName = pipe_name,
         })
-
-        -- Roslyn might not have been initialized yet. Repeat every seconds until
-        -- we can send the notification
-        if not initialized then
-            local timer = vim.uv.new_timer()
-            timer:start(1000, 0, initialize_roslyn)
-            return
-        end
 
         client.notify("razor/namedPipeConnect", {
             pipeName = pipe_name,
         })
     end
+
+    vim.notify("Connected to roslyn via pipe:" .. pipe_name)
 
     initialize_roslyn()
 end
@@ -162,6 +130,9 @@ end
 local state = {
     get_docstore = function()
         return virtual_documents
+    end,
+    get_roslyn_pipe = function()
+        return pipe_name
     end,
 }
 
