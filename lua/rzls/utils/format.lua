@@ -12,22 +12,41 @@ local function compute_minimal_diff(source, target, line_start, character_start)
     return lcs.convert_to_text_edits(collapsed_edits, line_start, character_start)
 end
 
+---@param lines string[]
+---@param range lsp.Range
+local function extract_lines_from_range(lines, range)
+    local start_row = range.start.line + 1
+    local start_col = range.start.character + 1
+    local end_row = range["end"].line + 1
+    local end_col = range["end"].character + 1
+
+    local source_lines = {}
+    -- Loop through the zero-indexed range [source_start_row, source_end_row)
+    for i = start_row, end_row do
+        local line = lines[i]
+
+        if i == start_row then
+            line = line:sub(start_col, -1)
+        elseif i == end_row then
+            line = line:sub(1, end_col - 1)
+        end
+
+        -- strip CR characters when neovim fails to identify the correct file format
+        if vim.endswith(line, "\r") then
+            table.insert(source_lines, line:sub(1, -2))
+        else
+            table.insert(source_lines, line)
+        end
+    end
+
+    return source_lines
+end
+
 ---@param source_buf string[]
 ---@param target_edit lsp.TextEdit
 ---@return lsp.TextEdit[]
 function M.compute_minimal_edits(source_buf, target_edit)
-    local source_start_row = target_edit.range.start.line
-    local source_start_col = target_edit.range.start.character
-    -- local source_end_row = target_edit.range["end"].line
-    -- local source_end_col = target_edit.range["end"].character
-
-    local source_lines = vim.tbl_map(function(line)
-        -- strip CR characters when neovim fails to identify the correct file format
-        if vim.endswith(line, "\r") then
-            return line:sub(1, -2)
-        end
-        return line
-    end, source_buf)
+    local source_lines = extract_lines_from_range(source_buf, target_edit.range)
     local target_lines = vim.split(target_edit.newText, "\r?\n")
 
     local source_text = table.concat(source_lines, "\n")
@@ -48,8 +67,12 @@ function M.compute_minimal_edits(source_buf, target_edit)
 
         local source = table.concat(source_lines, "\n", source_line_start, source_line_end)
         local target = table.concat(target_lines, "\n", target_line_start, target_line_end)
-        local text_edits =
-            compute_minimal_diff(source, target, source_start_row + source_line_start - 1, source_start_col)
+        local text_edits = compute_minimal_diff(
+            source,
+            target,
+            source_line_start + target_edit.range.start.line - 1,
+            target_edit.range.start.character
+        )
 
         vim.list_extend(edits, text_edits)
     end

@@ -67,16 +67,16 @@ function VirtualDocument:get_nio_lsp_client()
 end
 
 function VirtualDocument:line_count()
-    local lines = vim.split(self.content, "\n", { trimempty = false })
+    local lines = vim.split(self.content, "\r?\n", { trimempty = false })
     return #lines
 end
 
 function VirtualDocument:lines()
-    return vim.split(self.content, "\n", { trimempty = false })
+    return vim.split(self.content, "\r?\n", { trimempty = false })
 end
 
 function VirtualDocument:line_at(line)
-    local lines = vim.split(self.content, "\n", { trimempty = false })
+    local lines = vim.split(self.content, "\r?\n", { trimempty = false })
     return lines[line]
 end
 
