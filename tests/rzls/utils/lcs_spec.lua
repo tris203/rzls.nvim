@@ -2,7 +2,7 @@ local lcs = require("rzls.utils.lcs")
 local kind = lcs.edit_kind
 
 describe("lcs", function()
-    it("correctly calculates diff for saturday/sunday", function()
+    it("calculates diff for saturday -> sunday", function()
         local edits = lcs.diff("sunday", "saturday")
 
         ---@type rzls.lcs.Edit[]
@@ -36,7 +36,7 @@ describe("lcs", function()
         assert.are.same(expected, edits)
     end)
 
-    it("should diff new lines correctly", function()
+    it("diffs new lines", function()
         local source = '<div\n\nclass="container d-flex flex-column gap-3 py-3">'
         local target = '<div class="container d-flex flex-column gap-3 py-3">'
 
@@ -53,5 +53,48 @@ describe("lcs", function()
             { text = 'class="container d-flex flex-column gap-3 py-3">', kind = kind.unchanged, line = 3 },
         }
         assert.are.same(expected, edits)
+    end)
+
+    ---@return lsp.TextEdit
+    local function lsp_edit(new_text, start_line, start_char, end_line, end_char)
+        return {
+            newText = new_text,
+            range = {
+                start = {
+                    line = start_line,
+                    character = start_char,
+                },
+                ["end"] = {
+                    line = end_line,
+                    character = end_char,
+                },
+            },
+        }
+    end
+
+    it("converts edits to lsp.TextEdit's", function()
+        local source = '<div\n\nclass="foo">'
+        local target = '<div class="bar">'
+
+        local edits = lcs.diff(source, target)
+        edits = lcs.collapse(edits)
+
+        local text_edits = lcs.convert_to_text_edits(edits)
+
+        ---@type lsp.TextEdit[]
+        local expected = {
+            -- Delete first \n
+            lsp_edit("", 0, 4, 1, 0),
+            -- Delete second \n
+            lsp_edit("", 1, 0, 2, 0),
+            -- Add space between div and class
+            lsp_edit(" ", 2, 0, 2, 0),
+            -- Delete foo
+            lsp_edit("", 2, 8, 2, 11),
+            -- Add bar
+            lsp_edit("bar", 2, 11, 2, 11),
+        }
+
+        assert.are.same(expected, text_edits)
     end)
 end)

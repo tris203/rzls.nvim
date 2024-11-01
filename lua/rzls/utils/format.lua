@@ -1,5 +1,4 @@
 local lcs = require("rzls.utils.lcs")
-local utils = require("rzls.utils")
 local M = {}
 
 ---@param source string
