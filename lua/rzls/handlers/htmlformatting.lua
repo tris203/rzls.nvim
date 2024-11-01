@@ -29,8 +29,9 @@ return function(err, result, _ctx, _config)
         return {}, nil
     end
 
-    local line_count = virtual_document:line_count()
-    local last_line = virtual_document:line_at(line_count)
+    local lines = virtual_document:lines()
+    local line_count = #lines
+    local last_line = lines[line_count]
     local range_formatting_response = client.request_sync("textDocument/rangeFormatting", {
         textDocument = vim.lsp.util.make_text_document_params(virtual_document.buf),
         range = {
