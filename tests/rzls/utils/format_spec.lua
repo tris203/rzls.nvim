@@ -41,7 +41,7 @@ baz
 
         local minimal_edits = format.compute_minimal_edits(source_lines, full_replacement_edit)
 
-        -- Only contain edits that remove spaces in from of source document to match target
+        -- Only contain edits that remove spaces of the source document to match the target
         local expected = {
             lsp_edit("", 1, 0, 1, 4),
             lsp_edit("", 2, 0, 2, 8),
