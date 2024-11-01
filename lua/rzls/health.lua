@@ -1,5 +1,6 @@
 local M = {}
 local razor = require("rzls.razor")
+
 M.check = function()
     vim.health.start("rzls.nvim report")
     -- make sure setup function parameters are ok
@@ -25,7 +26,13 @@ M.check = function()
             end
         end
     end
-    -- make sure setup function parameters are ok
-    vim.health.ok("rzls.nvim report")
+
+    local roslyn_pipe_id = require("rzls.documentstore").get_roslyn_pipe
+
+    if roslyn_pipe_id then
+        vim.health.ok("roslyn lsp connected via pipe: " .. roslyn_pipe_id)
+    else
+        vim.health.error("roslyn pipe not connected")
+    end
 end
 return M

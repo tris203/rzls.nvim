@@ -106,9 +106,10 @@ function M.get_virtual_document(uri, _version, type)
     return doc and doc[type]
 end
 
+local pipe_name
 ---@param client vim.lsp.Client
 function M.initialize(client)
-    local pipe_name = utils.uuid()
+    pipe_name = utils.uuid()
 
     local function initialize_roslyn()
         local roslyn_client = vim.lsp.get_clients({ name = "roslyn" })[1]
@@ -129,6 +130,9 @@ end
 local state = {
     get_docstore = function()
         return virtual_documents
+    end,
+    get_roslyn_pipe = function()
+        return pipe_name
     end,
 }
 
