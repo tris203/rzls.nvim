@@ -18,12 +18,13 @@ local virtual_suffixes = {
     csharp = "__virtual.cs",
 }
 
----@type table<string, table<razor.LanguageKind, rzls.VirtualDocument>>
+---@type rzls.VirtualDocument<string, table<razor.LanguageKind, rzls.VirtualDocument>>
 local virtual_documents = {}
 
 local roslyn_ready = false
 
 ---@param name string
+---@return number | nil
 local function buffer_with_name(name)
     for _, buf in ipairs(vim.api.nvim_list_bufs()) do
         local buf_name = vim.api.nvim_buf_get_name(buf)
@@ -31,13 +32,11 @@ local function buffer_with_name(name)
             return buf
         end
     end
-
-    return -1
 end
 
 local function get_or_create_buffer_for_filepath(filepath, filetype)
     local buf = buffer_with_name(filepath)
-    if buf == -1 then
+    if not buf then
         vim.print(filepath)
         buf = vim.api.nvim_create_buf(true, false)
         vim.api.nvim_buf_set_name(buf, filepath)
@@ -160,10 +159,17 @@ function M.initialize(client, root_dir)
     initialize_roslyn()
 end
 
----@param client vim.lsp.Client
-function M.rosyln_is_ready(client, root_dir)
-    roslyn_ready = true
-    M.initialize(client, root_dir)
-end
+local state = {
+    get_docstore = function()
+        return virtual_documents
+    end,
+}
 
+setmetatable(M, {
+    __index = function(_, k)
+        if state[k] then
+            return state[k]()
+        end
+    end,
+})
 return M
