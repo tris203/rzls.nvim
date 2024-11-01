@@ -1,5 +1,7 @@
 local lcs = require("rzls.utils.lcs")
 local kind = lcs.edit_kind
+---@diagnostic disable-next-line: undefined-field
+local eq = assert.are.same
 
 describe("lcs", function()
     it("calculates diff for saturday -> sunday", function()
@@ -17,7 +19,7 @@ describe("lcs", function()
             { text = "a", kind = kind.unchanged },
             { text = "y", kind = kind.unchanged },
         }
-        assert.are.same(expected, edits)
+        eq(expected, edits)
     end)
 
     it("collapses sequences of edits of the same kind", function()
@@ -33,7 +35,7 @@ describe("lcs", function()
             { text = "r", kind = kind.addition, line = 1 },
             { text = "day", kind = kind.unchanged, line = 1 },
         }
-        assert.are.same(expected, edits)
+        eq(expected, edits)
     end)
 
     it("diffs new lines", function()
@@ -52,7 +54,7 @@ describe("lcs", function()
             { text = " ", kind = kind.addition, line = 3 },
             { text = 'class="container d-flex flex-column gap-3 py-3">', kind = kind.unchanged, line = 3 },
         }
-        assert.are.same(expected, edits)
+        eq(expected, edits)
     end)
 
     ---@return lsp.TextEdit
@@ -95,6 +97,6 @@ describe("lcs", function()
             lsp_edit("bar", 2, 11, 2, 11),
         }
 
-        assert.are.same(expected, text_edits)
+        eq(expected, text_edits)
     end)
 end)
