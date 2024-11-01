@@ -12,24 +12,22 @@ local function compute_minimal_diff(source, target, line_start, character_start)
     return lcs.convert_to_text_edits(collapsed_edits, line_start, character_start)
 end
 
----@param source_buf integer
+---@param source_buf string[]
 ---@param target_edit lsp.TextEdit
 ---@return lsp.TextEdit[]
 function M.compute_minimal_edits(source_buf, target_edit)
     local source_start_row = target_edit.range.start.line
     local source_start_col = target_edit.range.start.character
-    local source_end_row = target_edit.range["end"].line
-    local source_end_col = target_edit.range["end"].character
+    -- local source_end_row = target_edit.range["end"].line
+    -- local source_end_col = target_edit.range["end"].character
 
-    local source_lines =
-        vim.api.nvim_buf_get_text(source_buf, source_start_row, source_start_col, source_end_row, source_end_col, {})
-    source_lines = vim.tbl_map(function(line)
+    local source_lines = vim.tbl_map(function(line)
         -- strip CR characters when neovim fails to identify the correct file format
         if vim.endswith(line, "\r") then
             return line:sub(1, -2)
         end
         return line
-    end, source_lines)
+    end, source_buf)
     local target_lines = vim.split(target_edit.newText, "\r?\n")
 
     local source_text = table.concat(source_lines, "\n")
