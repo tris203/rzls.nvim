@@ -72,6 +72,7 @@ function M.setup(config)
                         callback = function()
                             documentstore.initialize(client)
                         end,
+                        group = au,
                     })
                     M.watch_new_files(root_dir)
                 end,
