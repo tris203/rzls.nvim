@@ -36,9 +36,10 @@ local function get_or_create_buffer_for_filepath(filepath, filetype)
     local buf = buffer_with_name(filepath)
     if not buf then
         vim.print(filepath)
-        buf = vim.api.nvim_create_buf(true, false)
+        buf = vim.api.nvim_create_buf(false, false)
         vim.api.nvim_buf_set_name(buf, filepath)
         vim.api.nvim_set_option_value("ft", filetype, { buf = buf })
+        vim.api.nvim_set_option_value("buftype", "nowrite", { buf = buf })
     end
 
     return buf
