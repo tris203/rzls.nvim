@@ -66,13 +66,18 @@ function M.setup(config)
                     "true",
                 },
                 on_init = function(client, _initialize_result)
-                    M.load_existing_files(root_dir)
+                    M.load_existing_files(client.root_dir)
+                    vim.api.nvim_create_autocmd("User", {
+                        pattern = "RoslynInitialized",
+                        callback = function()
+                            documentstore.initialize(client)
+                        end,
+                        group = au,
+                    })
                     M.watch_new_files(root_dir)
-                    documentstore.initialize(client, root_dir)
                 end,
                 root_dir = root_dir,
                 on_attach = function(client, bufnr)
-                    documentstore.initialize(client, root_dir)
                     documentstore.register_vbufs(bufnr)
                     rzlsconfig.on_attach(client, bufnr)
                 end,
@@ -120,4 +125,5 @@ function M.watch_new_files(path)
         end
     end)
 end
+
 return M
