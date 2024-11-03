@@ -14,7 +14,6 @@ The LSP can be cloned and compiled from source from the `dotnet/razor` repo.
 
 You must install the following plugins:
 
-* [nvim-neotest/nvim-nio](https://github.com/nvim-neotest/nvim-nio)
 * [seblj/roslyn.nvim](https://github.com/seblj/roslyn.nvim)
 
 The `html-lsp` is also required to provide completions. You can install it with

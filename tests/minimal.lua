@@ -20,17 +20,5 @@ vim.opt.rtp:append(".")
 vim.opt.rtp:append(plenary_dir)
 require("plenary.busted")
 
-
-local nio_dir = os.getenv("NIO_DIR") or tempdir("nvim-nio")
-if vim.fn.isdirectory(nio_dir) == 0 then
-    vim.fn.system({
-        "git",
-        "clone",
-        "https://github.com/nvim-neotest/nvim-nio",
-        nio_dir,
-    })
-end
-vim.opt.rtp:append(nio_dir)
-
 vim.cmd("runtime plugin/plenary.vim")
 return M

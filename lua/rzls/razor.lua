@@ -1,29 +1,28 @@
 local M = {}
----@module "nio"
 
 ---@class razor.LanguageQueryParams
----@field position nio.lsp.types.Position
+---@field position lsp.Position
 ---@field uri string
 
 ---@class razor.LanguageQueryResponse
 ---@field hostDocumentVersion integer
 ---@field kind razor.LanguageKind
----@field position nio.lsp.types.Position
+---@field position lsp.Position
 ---@field positionIndex integer
 
 ---@class razor.MapToDocumentRangesParams
 ---@field razorDocumentUri string
 ---@field kind razor.LanguageKind
----@field projectedRanges nio.lsp.types.Range[]
+---@field projectedRanges lsp.Range[]
 
 ---@class razor.MapToDocumentRangesResponse
 ---@field hostDocumentVersion integer
----@field ranges nio.lsp.types.Range[]
+---@field ranges lsp.Range[]
 
 ---@class razor.ProvideSemanticTokensParams
 ---@field correlationId string
----@field textDocument nio.lsp.types.TextDocumentIdentifier
----@field ranges nio.lsp.types.Range[]
+---@field textDocument lsp.TextDocumentIdentifier
+---@field ranges lsp.Range[]
 ---@field requiredHostDocumentVersion integer
 
 ---@class razor.ProvideSemanticTokensResponse
@@ -35,18 +34,18 @@ local M = {}
 ---@field hostDocumentSyncVersion integer
 
 ---@class razor.DelegatedCompletionParams
----@field identifier { textDocumentIdentifier: nio.lsp.types.TextDocumentIdentifier, version: integer }
----@field projectedPosition nio.lsp.types.Position
+---@field identifier { textDocumentIdentifier: lsp.TextDocumentIdentifier, version: integer }
+---@field projectedPosition lsp.Position
 ---@field projectedKind razor.LanguageKind
----@field context nio.lsp.types.CompletionContext
----@field provisionalTextEdit nio.lsp.types.TextEdit
+---@field context lsp.CompletionContext
+---@field provisionalTextEdit lsp.TextEdit
 ---@field shouldIncludeSnippets boolean
 
 ---@class razor.ProvideDynamicFileParams
----@field razorDocument nio.lsp.types.TextDocumentIdentifier
+---@field razorDocument lsp.TextDocumentIdentifier
 
 ---@class razor.ProvideDynamicFileResponse
----@field csharpDocument nio.lsp.types.TextDocumentIdentifier|nil
+---@field csharpDocument? lsp.TextDocumentIdentifier
 
 ---@enum razor.LanguageKind
 M.language_kinds = {

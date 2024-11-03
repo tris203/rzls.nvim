@@ -2,7 +2,6 @@ local documentstore = require("rzls.documentstore")
 local lsp_util = require("rzls.utils.lsp")
 local dsu = require("rzls.utils.documentstore")
 local razor = require("rzls.razor")
-local nio = require("nio")
 
 local not_implemented = function(err, result, ctx, config)
     vim.print("Called" .. ctx.method)
@@ -72,18 +71,14 @@ return {
     ---@return razor.ProvideSemanticTokensResponse|nil
     ---@return lsp.ResponseError|nil
     ["razor/provideSemanticTokensRange"] = function(err, result, _ctx, _config)
-        nio.run(function()
-            assert(not err, err)
+        assert(not err, err)
 
-            local virtual_document = documentstore.get_virtual_document(
-                result.textDocument.uri,
-                result.requiredHostDocumentVersion,
-                razor.language_kinds.csharp
-            )
-            assert(virtual_document, "Could not find virtual document")
-
-            -- local virtual_buf_client = nio.lsp.get_clients({ bufnr = virtual_document.buf })[1]
-        end)
+        local virtual_document = documentstore.get_virtual_document(
+            result.textDocument.uri,
+            result.requiredHostDocumentVersion,
+            razor.language_kinds.csharp
+        )
+        assert(virtual_document, "Could not find virtual document")
     end,
     ["razor/foldingRange"] = not_implemented,
 
