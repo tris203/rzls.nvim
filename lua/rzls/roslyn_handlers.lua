@@ -1,7 +1,6 @@
 local documentstore = require("rzls.documentstore")
 local razor = require("rzls.razor")
 
----@module "nio"
 ---@param _err lsp.ResponseError
 ---@param result razor.ProvideDynamicFileParams
 ---@param _ctx lsp.HandlerContext

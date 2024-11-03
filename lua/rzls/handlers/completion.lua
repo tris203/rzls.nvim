@@ -21,7 +21,7 @@ return function(err, result, _ctx, _config)
     local trigger_character = result.context.triggerCharacter == "@" and result.context.triggerCharacter or nil
     local trigger_kind = result.context.triggerCharacter == "@" and result.context.triggerKind or 1 -- Invoked
 
-    ---@type lsp.CompletionParams | nio.lsp.types.CompletionParams
+    ---@type lsp.CompletionParams
     local params = {
         context = {
             triggerKind = trigger_kind,

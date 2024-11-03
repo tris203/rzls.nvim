@@ -1,5 +1,4 @@
 local razor = require("rzls.razor")
-local nio = require("nio")
 
 ---@class rzls.VirtualDocument
 ---@field buf number
@@ -58,11 +57,6 @@ end
 ---@return vim.lsp.Client|nil
 function VirtualDocument:get_lsp_client()
     return vim.lsp.get_clients({ bufnr = self.buf, name = razor.lsp_names[self.kind] })[1]
-end
-
----@return nio.lsp.Client|nil
-function VirtualDocument:get_nio_lsp_client()
-    return nio.lsp.get_clients({ bufnr = self.buf, name = razor.lsp_names[self.kind] })[1]
 end
 
 return VirtualDocument
