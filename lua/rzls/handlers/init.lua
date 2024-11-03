@@ -1,6 +1,4 @@
 local documentstore = require("rzls.documentstore")
-local lsp_util = require("rzls.utils.lsp")
-local dsu = require("rzls.utils.documentstore")
 local razor = require("rzls.razor")
 
 local not_implemented = function(err, result, ctx, config)
@@ -32,108 +30,24 @@ return {
     -- VS Windows and VS Code
     ---@param err lsp.ResponseError
     ---@param result VBufUpdate
-    ---@param _ctx lsp.HandlerContext
-    ---@param _config? table
-    ---@return razor.ProvideSemanticTokensResponse|nil
-    ---@return lsp.ResponseError|nil
-    ["razor/updateCSharpBuffer"] = function(err, result, _ctx, _config)
+    ["razor/updateCSharpBuffer"] = function(err, result)
         assert(not err, vim.inspect(err))
         documentstore.update_vbuf(result, razor.language_kinds.csharp)
     end,
     ---@param err lsp.ResponseError
     ---@param result VBufUpdate
-    ---@param _ctx lsp.HandlerContext
-    ---@param _config? table
-    ---@return razor.ProvideSemanticTokensResponse|nil
-    ---@return lsp.ResponseError|nil
-    ["razor/updateHtmlBuffer"] = function(err, result, _ctx, _config)
+    ["razor/updateHtmlBuffer"] = function(err, result)
         assert(not err, vim.inspect(err))
         documentstore.update_vbuf(result, razor.language_kinds.html)
     end,
     ["razor/provideCodeActions"] = not_implemented,
     ["razor/resolveCodeActions"] = not_implemented,
     ["razor/provideHtmlColorPresentation"] = not_supported,
-    ["razor/provideHtmlDocumentColor"] = function(err, _result, _ctx, _config)
-        if err then
-            vim.print("Error in razor/provideHtmlDocumentColor")
-            return {}, nil
-        end
-        -- local _targetDoc = result.textDocument.uri
-        -- local _targetVersion = result._razor_hostDocumentVersion
-        --TODO: Function that will look through the virtual HTML buffer and return color locations
-        return {}, nil
-    end,
+    ["razor/provideHtmlDocumentColor"] = not_implemented,
     ["razor/provideSemanticTokensRange"] = require("rzls.handlers.providesemantictokensrange"),
     ["razor/foldingRange"] = not_implemented,
 
-    ["razor/htmlFormatting"] = function(err, result, _ctx, _config)
-        if err then
-            -- vim.print("Error in razor/htmlFormatting")
-            return {}, nil
-        end
-        local vd = documentstore.get_virtual_document(
-            result.textDocument.uri,
-            result._razor_hostDocumentVersion,
-            razor.language_kinds.html
-        )
-        assert(vd, "Could not find virtual document")
-        local bufnr = vd.buf
-        if not bufnr or not vim.api.nvim_buf_is_valid(bufnr) then
-            -- vim.print("No virtual buffer found")
-            return {}, nil
-        end
-        local client = lsp_util.get_client("html")
-        if not client then
-            return {}, nil
-        end
-        local response
-        local filename = vim.api.nvim_buf_get_name(bufnr)
-        local linecount = dsu.get_virtual_lines_count(bufnr)
-        local virtual_htmluri = "file://" .. filename
-        -- vim.print("Formatting virtual HTML buffer: " .. virtual_htmluri)
-        -- vim.print("Range to line " .. linecount)
-        -- vim.print(vim.inspect(result.options))
-        client.request("textDocument/rangeFormatting", {
-            textDocument = { uri = virtual_htmluri },
-            range = {
-                start = {
-                    line = 0,
-                    character = 0,
-                },
-                ["end"] = {
-                    line = linecount - 1,
-                    character = 0,
-                },
-            },
-            options = result.options,
-        }, function(suberr, subresult, _subctx, _subconfig)
-            -- vim.print("Formatting virtual HTML buffer: " .. virtual_htmluri .. " DONE")
-            if suberr then
-                -- vim.print("Error in subformatting request")
-                -- vim.print(vim.inspect(suberr))
-                return {}, nil
-            end
-            response = subresult
-            return {}, nil
-        end, bufnr)
-        local i = 0
-        while not response do
-            -- HACK: Make this not ugly and properly wait
-            -- vim.print("Waiting for response")
-            vim.wait(100)
-            i = i + 1
-            if i > 100 then
-                -- vim.print("Timeout")
-                break
-            end
-        end
-        --TODO: This works byt the rzr lsp complains that
-        -- [WARN][2024-06-05 21:54:34] ...lsp/handlers.lua:626	"[LSP][LanguageServer.Formatting.FormattingContentValidationPass] A format operation is being abandoned because it would add or delete non-whitespace content."
-        -- [WARN][2024-06-05 21:54:34] ...lsp/handlers.lua:626	"[LSP][LanguageServer.Formatting.FormattingContentValidationPass] Edit at (0, 0)-(16, 0) adds the non-whitespace content 'REDACTED'."
-        -- Need to make the returned edits valid
-        -- vim.print(vim.inspect(response))
-        return { edits = response }, nil
-    end,
+    ["razor/htmlFormatting"] = not_implemented,
     ["razor/htmlOnTypeFormatting"] = not_implemented,
     ["razor/simplifyMethod"] = not_implemented,
     ["razor/formatNewFile"] = not_implemented,
