@@ -22,41 +22,6 @@ describe("lcs", function()
         eq(expected, edits)
     end)
 
-    it("collapses sequences of edits of the same kind", function()
-        local edits = lcs.diff("sunday", "saturday")
-        edits = lcs.collapse(edits)
-
-        ---@type rzls.lcs.CollapsedEdit[]
-        local expected = {
-            { text = "s", kind = kind.unchanged, line = 1 },
-            { text = "at", kind = kind.addition, line = 1 },
-            { text = "u", kind = kind.unchanged, line = 1 },
-            { text = "n", kind = kind.removal, line = 1 },
-            { text = "r", kind = kind.addition, line = 1 },
-            { text = "day", kind = kind.unchanged, line = 1 },
-        }
-        eq(expected, edits)
-    end)
-
-    it("diffs new lines", function()
-        local source = '<div\n\nclass="container d-flex flex-column gap-3 py-3">'
-        local target = '<div class="container d-flex flex-column gap-3 py-3">'
-
-        local edits = lcs.diff(source, target)
-        edits = lcs.collapse(edits)
-
-        ---@type rzls.lcs.CollapsedEdit[]
-        local expected = {
-            { text = "<div", kind = kind.unchanged, line = 1 },
-            -- new lines should not be included in the colapsed changes
-            { text = "", kind = kind.removal, line = 1 },
-            { text = "", kind = kind.removal, line = 2 },
-            { text = " ", kind = kind.addition, line = 3 },
-            { text = 'class="container d-flex flex-column gap-3 py-3">', kind = kind.unchanged, line = 3 },
-        }
-        eq(expected, edits)
-    end)
-
     ---@return lsp.TextEdit
     local function lsp_edit(new_text, start_line, start_char, end_line, end_char)
         return {
@@ -79,24 +44,45 @@ describe("lcs", function()
         local target = '<div class="bar">'
 
         local edits = lcs.diff(source, target)
-        edits = lcs.collapse(edits)
+        local text_edits = lcs.to_lsp_edits(edits, 0, 0)
 
-        local text_edits = lcs.convert_to_text_edits(edits)
-
-        ---@type lsp.TextEdit[]
         local expected = {
-            -- Delete first \n
-            lsp_edit("", 0, 4, 1, 0),
-            -- Delete second \n
-            lsp_edit("", 1, 0, 2, 0),
-            -- Add space between div and class
-            lsp_edit(" ", 2, 0, 2, 0),
-            -- Delete foo
-            lsp_edit("", 2, 8, 2, 11),
-            -- Add bar
-            lsp_edit("bar", 2, 11, 2, 11),
+            -- Replaces "\n\n" with " "
+            lsp_edit(" ", 0, 4, 2, 0),
+            -- Replaces "foo" with "bar"
+            lsp_edit("bar", 2, 7, 2, 10),
         }
 
         eq(expected, text_edits)
+    end)
+
+    it("applies converted lsp.TextEdit's to buffer", function()
+        local source = '<div class="bar">'
+        local target = '<div\n\nclass="foo">'
+
+        local edits = lcs.diff(source, target)
+        local text_edits = lcs.to_lsp_edits(edits, 0, 0)
+
+        local buf = vim.api.nvim_create_buf(false, true)
+        vim.api.nvim_buf_set_lines(buf, 0, -1, true, vim.split(source, "\n"))
+        vim.lsp.util.apply_text_edits(text_edits, buf, "utf-8")
+
+        local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, true)
+        eq(target, table.concat(lines, "\n"))
+    end)
+
+    it("applies converted lsp.TextEdit's to buffer with CRLF line endings", function()
+        local source = '<div class="bar">'
+        local target = '<div\r\n\r\nclass="foo">'
+
+        local edits = lcs.diff(source, target)
+        local text_edits = lcs.to_lsp_edits(edits, 0, 0)
+
+        local buf = vim.api.nvim_create_buf(false, true)
+        vim.api.nvim_buf_set_lines(buf, 0, -1, true, vim.split(source, "\r\n"))
+        vim.lsp.util.apply_text_edits(text_edits, buf, "utf-8")
+
+        local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, true)
+        eq(target, table.concat(lines, "\r\n"))
     end)
 end)

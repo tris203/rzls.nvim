@@ -1,17 +1,6 @@
 local lcs = require("rzls.utils.lcs")
 local M = {}
 
----@param source string
----@param target string
----@param line_start? integer
----@param character_start? integer
-local function compute_minimal_diff(source, target, line_start, character_start)
-    local edits = lcs.diff(source, target)
-    local collapsed_edits = lcs.collapse(edits)
-
-    return lcs.convert_to_text_edits(collapsed_edits, line_start, character_start)
-end
-
 ---@param lines string[]
 ---@param range lsp.Range
 local function extract_lines_from_range(lines, range)
@@ -60,6 +49,7 @@ function M.compute_minimal_edits(source_buf, target_edit)
 
     ---@type lsp.TextEdit[]
     local edits = {}
+
     for _, idx in ipairs(indices) do
         local source_line_start, source_line_count, target_line_start, target_line_count = unpack(idx)
         local source_line_end = source_line_start + source_line_count - 1
@@ -67,9 +57,9 @@ function M.compute_minimal_edits(source_buf, target_edit)
 
         local source = table.concat(source_lines, "\n", source_line_start, source_line_end)
         local target = table.concat(target_lines, "\n", target_line_start, target_line_end)
-        local text_edits = compute_minimal_diff(
-            source,
-            target,
+
+        local text_edits = lcs.to_lsp_edits(
+            lcs.diff(source, target),
             source_line_start + target_edit.range.start.line - 1,
             target_edit.range.start.character
         )
@@ -77,6 +67,7 @@ function M.compute_minimal_edits(source_buf, target_edit)
         vim.list_extend(edits, text_edits)
     end
 
+    -- return vim.print(edits)
     return edits
 end
 

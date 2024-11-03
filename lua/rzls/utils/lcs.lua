@@ -3,11 +3,6 @@ local M = {}
 ---@class rzls.lcs.Edit
 ---@field kind rzls.lcs.EditKind
 ---@field text string
----
----@class rzls.lcs.CollapsedEdit
----@field kind rzls.lcs.EditKind
----@field text string
----@field line integer
 
 ---@enum rzls.lcs.EditKind
 M.edit_kind = {
@@ -110,142 +105,69 @@ function M.diff(source, target)
     return reverse_table(edits)
 end
 
---- Collapses a sequence of edits of the same kind that are on the same line
 ---@param edits rzls.lcs.Edit[]
----@return rzls.lcs.CollapsedEdit[]
-function M.collapse(edits)
-    ---@type rzls.lcs.Edit[]
-    local results = {}
-
-    local i = 1
-    local line = 1
-    while i < #edits do
-        local current_text = ""
-        local current_kind = edits[i].kind
-        local current_line = line
-
-        for j = i, #edits do
-            if edits[j].kind ~= current_kind then
-                break
-            end
-            i = i + 1
-
-            if edits[j].text ~= "\n" then
-                current_text = current_text .. edits[j].text
-            end
-
-            -- Keep the new line in this edit but don't accept anymore edits
-            if edits[j].text == "\n" then
-                line = line + 1
-                break
-            end
-        end
-
-        table.insert(results, {
-            text = current_text,
-            kind = current_kind,
-            line = current_line,
-        })
-    end
-
-    return results
-end
-
---- Group edits that belong to the same line
----@param edits rzls.lcs.CollapsedEdit[]
----@return rzls.lcs.CollapsedEdit[][]
-function M.group_edits_by_line(edits)
-    ---@type rzls.lcs.CollapsedEdit[][]
-    local line_edits = {}
-    local line = 1
-    local i = 1
-    while i < #edits do
-        line_edits[line] = {
-            edits[i],
-        }
-
-        for j = i + 1, #edits do
-            if edits[j].line ~= edits[i].line then
-                break
-            end
-            table.insert(line_edits[line], edits[j])
-            i = i + 1
-        end
-        line = line + 1
-        i = i + 1
-    end
-
-    return line_edits
-end
-
----@param edits rzls.lcs.CollapsedEdit[]
----@param line_start? integer
----@param character_start? integer
+---@param line integer
+---@param character integer
 ---@return lsp.TextEdit[]
-function M.convert_to_text_edits(edits, line_start, character_start)
-    local line_edits = M.group_edits_by_line(edits)
-    line_start = line_start or 0
-    character_start = character_start or 0
-
-    local character = character_start
+function M.to_lsp_edits(edits, line, character)
+    local function advance_cursor(edit)
+        if edit.text == "\n" then
+            line = line + 1
+            character = 0
+        else
+            character = character + 1
+        end
+    end
 
     ---@type lsp.TextEdit[]
-    local text_edits = {}
-    for line, line_edit in ipairs(line_edits) do
-        -- LSP lines are 0 based
-        line = line + line_start - 1
-        for edit_index, edit in ipairs(line_edit) do
-            local next_edit = line_edit[edit_index + 1]
-
-            -- if next_edit is nil, it means we are at the last line
-            local is_eol = next_edit == nil or edit.line ~= next_edit.line
-            -- if we are the last edit on a line, we must place an edit that ends
-            -- on the begging of the next line
-            local ending_line = is_eol and line + 1 or line
-            local ending_character = is_eol and 0 or character
-
-            ---@type lsp.TextEdit
-            local text_edit
-            if edit.kind == "removal" then
-                text_edit = {
-                    newText = "",
-                    range = {
-                        start = {
-                            line = line,
-                            character = character,
-                        },
-                        ["end"] = {
-                            line = ending_line,
-                            character = ending_character + edit.text:len(),
-                        },
-                    },
-                }
-            elseif edit.kind == "addition" then
-                text_edit = {
-                    newText = edit.text,
-                    range = {
-                        start = {
-                            line = line,
-                            character = character,
-                        },
-                        ["end"] = {
-                            line = ending_line,
-                            character = ending_character,
-                        },
-                    },
-                }
-            end
-            -- NOTE: unchanged edits should only skip characters
-
-            character = character + edit.text:len()
-            if text_edit ~= nil then
-                table.insert(text_edits, text_edit)
-            end
+    local lsp_edits = {}
+    local i = 1
+    while i < #edits do
+        -- Skip all unchanged edits and advance cursor
+        while i < #edits and edits[i].kind == M.edit_kind.unchanged do
+            advance_cursor(edits[i])
+            i = i + 1
         end
-        character = 0
+
+        -- No more edits to compute
+        if i >= #edits then
+            break
+        end
+
+        local new_text = ""
+        local start_line, start_character = line, character
+
+        -- Collect consecutive additions and removals
+        while i < #edits and edits[i].kind ~= M.edit_kind.unchanged do
+            if edits[i].kind == M.edit_kind.addition then
+                new_text = new_text .. edits[i].text
+            elseif edits[i].kind == M.edit_kind.removal then
+                advance_cursor(edits[i])
+            else
+                error("unexcepted edit kind " .. edits[i].kind)
+            end
+            i = i + 1
+        end
+
+        ---@type lsp.TextEdit
+        local lsp_edit = {
+            newText = new_text,
+            range = {
+                start = {
+                    line = start_line,
+                    character = start_character,
+                },
+                ["end"] = {
+                    line = line,
+                    character = character,
+                },
+            },
+        }
+
+        table.insert(lsp_edits, lsp_edit)
     end
 
-    return text_edits
+    return lsp_edits
 end
 
 return M
