@@ -104,6 +104,9 @@ end
 ---@return rzls.VirtualDocument | nil
 function M.get_virtual_document(uri, _version, type)
     local doc = virtual_documents[uri_to_path(uri)]
+    if type == razor.language_kinds.razor then
+        return doc
+    end
     return doc and doc[type]
 end
 

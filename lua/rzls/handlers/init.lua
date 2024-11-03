@@ -97,6 +97,7 @@ return {
             result._razor_hostDocumentVersion,
             razor.language_kinds.html
         )
+        assert(vd, "Could not find virtual document")
         local bufnr = vd.buf
         if not bufnr or not vim.api.nvim_buf_is_valid(bufnr) then
             -- vim.print("No virtual buffer found")
@@ -174,5 +175,4 @@ return {
     ["razor/csharpPullDiagnostics"] = not_implemented,
     ["textDocument/colorPresentation"] = not_supported,
     ["razor/completion"] = require("rzls.handlers.completion"),
-    [vim.lsp.protocol.Methods.textDocument_hover] = require("rzls.handlers.hover"),
 }

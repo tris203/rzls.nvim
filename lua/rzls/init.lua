@@ -25,6 +25,11 @@ local function get_cmd_path(config)
     return get_mason_installation()
 end
 
+---@type table<string, fun(err, result, ctx, config)>
+local wrapper_func = {
+    ["textDocument/hover"] = require("rzls.clienthandlers.hover"),
+}
+
 ---@type rzls.Config
 local defaultConfg = {
     on_attach = function()
@@ -80,6 +85,13 @@ function M.setup(config)
                 on_attach = function(client, bufnr)
                     documentstore.register_vbufs(bufnr)
                     rzlsconfig.on_attach(client, bufnr)
+                    local req = client.request
+                    client.request = function(method, params, handler, tbufnr)
+                        if wrapper_func[method] then
+                            return req(method, params, wrapper_func[method], tbufnr)
+                        end
+                        return req(method, params, handler, tbufnr)
+                    end
                 end,
                 capabilities = vim.tbl_deep_extend("force", rzlsconfig.capabilities, extraCapabilities),
                 settings = {
