@@ -27,7 +27,6 @@ return {
     ["razor/spellCheck"] = not_implemented,
     ["razor/projectContexts"] = not_implemented,
     ["razor/pullDiagnostics"] = not_implemented,
-    ["razor/provideSemanticTokensRanges"] = not_implemented,
     ["razor/mapCode"] = not_implemented,
 
     -- VS Windows and VS Code
@@ -64,22 +63,7 @@ return {
         --TODO: Function that will look through the virtual HTML buffer and return color locations
         return {}, nil
     end,
-    ---@param err lsp.ResponseError
-    ---@param result razor.ProvideSemanticTokensParams
-    ---@param _ctx lsp.HandlerContext
-    ---@param _config? table
-    ---@return razor.ProvideSemanticTokensResponse|nil
-    ---@return lsp.ResponseError|nil
-    ["razor/provideSemanticTokensRange"] = function(err, result, _ctx, _config)
-        assert(not err, err)
-
-        local virtual_document = documentstore.get_virtual_document(
-            result.textDocument.uri,
-            result.requiredHostDocumentVersion,
-            razor.language_kinds.csharp
-        )
-        assert(virtual_document, "Could not find virtual document")
-    end,
+    ["razor/provideSemanticTokensRange"] = require("rzls.handlers.providesemantictokensrange"),
     ["razor/foldingRange"] = not_implemented,
 
     ["razor/htmlFormatting"] = function(err, result, _ctx, _config)
