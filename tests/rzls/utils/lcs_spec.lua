@@ -85,4 +85,45 @@ describe("lcs", function()
         local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, true)
         eq(target, table.concat(lines, "\r\n"))
     end)
+
+    it("applies converted edits to buffer with multiple errors", function()
+        local source = [[
+<div
+            class = "bar">
+            <h1> Intentional Leading Space</h1>
+
+
+                </div>
+]]
+        local target = [[
+<div class="bar">
+    <h1> Intentional Leading Space</h1>
+</div>
+]]
+
+        local edits = lcs.diff(source, target)
+        local text_edits = lcs.to_lsp_edits(edits, 0, 0)
+
+        local buf = vim.api.nvim_create_buf(false, true)
+        vim.api.nvim_buf_set_lines(buf, 0, -1, true, vim.split(source, "\n"))
+        vim.lsp.util.apply_text_edits(text_edits, buf, "utf-8")
+
+        local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, true)
+        eq(target, table.concat(lines, "\n"))
+    end)
+
+    it("applies edits to unicode characters", function()
+        local source = "        <h1>💩</h1>"
+        local target = "<h1>:💩</h1>"
+
+        local edits = lcs.diff(source, target)
+        local text_edits = lcs.to_lsp_edits(edits, 0, 0)
+
+        local buf = vim.api.nvim_create_buf(false, true)
+        vim.api.nvim_buf_set_lines(buf, 0, -1, true, vim.split(source, "\n"))
+        vim.lsp.util.apply_text_edits(text_edits, buf, "utf-16")
+
+        local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, true)
+        eq(target, table.concat(lines, "\n"))
+    end)
 end)
