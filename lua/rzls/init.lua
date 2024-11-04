@@ -26,11 +26,6 @@ local function get_cmd_path(config)
     return get_mason_installation()
 end
 
----@type table<string, fun(err, result, ctx, config)>
-local wrapper_func = {
-    ["textDocument/hover"] = require("rzls.clienthandlers.hover"),
-}
-
 ---@type rzls.Config
 local defaultConfg = {
     on_attach = function()
@@ -98,9 +93,6 @@ function M.setup(config)
                     end
                     local req = client.request
                     client.request = function(method, params, handler, tbufnr)
-                        if wrapper_func[method] then
-                            return req(method, params, wrapper_func[method], tbufnr)
-                        end
                         if method == vim.lsp.protocol.Methods.textDocument_semanticTokens_full then
                             return req(vim.lsp.protocol.Methods.textDocument_semanticTokens_range, {
                                 textDocument = params.textDocument,
@@ -136,6 +128,19 @@ function M.setup(config)
             end
 
             vim.lsp.buf_attach_client(ev.buf, lsp_client_id)
+
+            local aftershave_client_id = vim.lsp.start({
+                name = "aftershave",
+                root_dir = root_dir,
+                cmd = require("rzls.server.lsp").server,
+            })
+
+            if aftershave_client_id == nil then
+                vim.notify("Could not start aftershave LSP", vim.log.levels.ERROR, { title = "rzls.nvim" })
+                return
+            end
+
+            vim.lsp.buf_attach_client(ev.buf, aftershave_client_id)
         end,
         group = au,
     })

@@ -54,6 +54,12 @@ M.language_kinds = {
     razor = 3,
 }
 
+M.lsp_response_lang = {
+    [1] = "csharp",
+    [2] = "markdown",
+    [3] = "markdown",
+}
+
 ---@enum razor.LSPClientName
 M.lsp_names = {
     [M.language_kinds.html] = "html",

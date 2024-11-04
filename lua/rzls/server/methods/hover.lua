@@ -1,21 +1,18 @@
 local documentstore = require("rzls.documentstore")
+local razor = require("rzls.razor")
 
----@param err lsp.ResponseError
----@param result lsp.TextDocumentPositionParams
----@param ctx lsp.HandlerContext
----@param config table
-return function(err, result, ctx, config)
-    if result then
-        vim.lsp.handlers.hover(err, result, ctx, config)
-        return
-    end
-
+---@param params lsp.TextDocumentPositionParams
+---@return lsp.Hover?
+return function(params)
     ---@type lsp.Position
-    local position = ctx.params.position
+    local position = params.position
     ---@type integer
-    local razor_bufnr = ctx.bufnr
+    local razor_bufnr = vim.uri_to_bufnr(params.textDocument.uri)
+    local razor_docname = vim.api.nvim_buf_get_name(razor_bufnr)
 
-    local client = vim.lsp.get_client_by_id(ctx.client_id)
+    local rvd = documentstore.get_virtual_document(razor_docname, 0, razor.language_kinds.razor)
+    assert(rvd, "Could not find virtual document")
+    local client = rvd:get_lsp_client()
     assert(client, "Could not find Razor Client")
 
     local language_query_response = client.request_sync("razor/languageQuery", {
@@ -35,20 +32,17 @@ return function(err, result, ctx, config)
     local virtual_buf_client = virtual_document:get_lsp_client()
 
     if virtual_buf_client == nil then
-        vim.lsp.handlers.hover(err, {}, ctx, config)
         return
     end
 
     local hover_result = virtual_buf_client.request_sync("textDocument/hover", {
         textDocument = {
             uri = vim.uri_from_bufnr(virtual_document.buf),
-            "textHover from virtual buffer uri",
         },
         position = language_query_response.result.position,
     }, nil, virtual_document.buf)
 
     if not hover_result or hover_result.result == nil then
-        vim.lsp.handlers.hover(err, {}, ctx, config)
         return
     end
 
@@ -59,9 +53,15 @@ return function(err, result, ctx, config)
     }, nil, razor_bufnr)
 
     if response and response.result ~= nil and response.result.ranges[1] ~= nil then
-        vim.lsp.handlers.hover(err, {
-            contents = hover_result.result.contents,
+        ---@type lsp.MarkedStringWithLanguage
+        local message = {
+            language = razor.lsp_response_lang[language_query_response.result.kind],
+            value = hover_result.result.contents.value,
+        }
+        ---@type lsp.Hover
+        return {
+            contents = message,
             range = response.result.ranges[1],
-        }, ctx, config)
+        }
     end
 end
