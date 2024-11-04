@@ -13,11 +13,6 @@ local VirtualDocument = require("rzls.virtual_document")
 
 local M = {}
 
-local virtual_suffixes = {
-    html = "__virtual.html",
-    csharp = "__virtual.cs",
-}
-
 ---@type rzls.VirtualDocument<string, table<razor.LanguageKind, rzls.VirtualDocument>>
 local virtual_documents = {}
 
@@ -57,14 +52,14 @@ function M.register_vbufs_by_path(current_file)
     end
 
     if virtual_documents[current_file][razor.language_kinds.csharp] == nil then
-        local buf = get_or_create_buffer_for_filepath(current_file .. virtual_suffixes.csharp, "cs")
+        local buf = get_or_create_buffer_for_filepath(current_file .. razor.virtual_suffixes.csharp, "cs")
 
         virtual_documents[current_file][razor.language_kinds.csharp] =
             VirtualDocument:new(buf, razor.language_kinds.csharp)
     end
 
     if virtual_documents[current_file][razor.language_kinds.html] == nil then
-        local buf = get_or_create_buffer_for_filepath(current_file .. virtual_suffixes.html, "html")
+        local buf = get_or_create_buffer_for_filepath(current_file .. razor.virtual_suffixes.html, "html")
 
         virtual_documents[current_file][razor.language_kinds.html] = VirtualDocument:new(buf, razor.language_kinds.html)
     end

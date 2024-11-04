@@ -5,11 +5,13 @@ local requests = {
         return {
             capabilities = {
                 hoverProvider = true,
+                definitionProvider = true,
             },
         }
     end,
     ["shutdown"] = function(_) end,
     ["textDocument/hover"] = require("rzls.server.methods.hover"),
+    ["textDocument/definition"] = require("rzls.server.methods.definition"),
 }
 
 function M.server()

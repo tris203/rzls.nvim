@@ -60,6 +60,11 @@ M.lsp_response_lang = {
     [3] = "markdown",
 }
 
+M.virtual_suffixes = {
+    html = "__virtual.html",
+    csharp = "__virtual.cs",
+}
+
 ---@enum razor.LSPClientName
 M.lsp_names = {
     [M.language_kinds.html] = "html",
