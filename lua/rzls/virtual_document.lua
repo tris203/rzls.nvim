@@ -59,4 +59,18 @@ function VirtualDocument:get_lsp_client()
     return vim.lsp.get_clients({ bufnr = self.buf, name = razor.lsp_names[self.kind] })[1]
 end
 
+function VirtualDocument:line_count()
+    local lines = vim.split(self.content, "\r?\n", { trimempty = false })
+    return #lines
+end
+
+function VirtualDocument:lines()
+    return vim.split(self.content, "\r?\n", { trimempty = false })
+end
+
+function VirtualDocument:line_at(line)
+    local lines = vim.split(self.content, "\r?\n", { trimempty = false })
+    return lines[line]
+end
+
 return VirtualDocument

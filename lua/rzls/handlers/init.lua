@@ -47,7 +47,7 @@ return {
     ["razor/provideSemanticTokensRange"] = require("rzls.handlers.providesemantictokensrange"),
     ["razor/foldingRange"] = not_implemented,
 
-    ["razor/htmlFormatting"] = not_implemented,
+    ["razor/htmlFormatting"] = require("rzls.handlers.htmlformatting"),
     ["razor/htmlOnTypeFormatting"] = not_implemented,
     ["razor/simplifyMethod"] = not_implemented,
     ["razor/formatNewFile"] = not_implemented,
