@@ -1,5 +1,6 @@
 local handlers = require("rzls.handlers")
 local documentstore = require("rzls.documentstore")
+local razor = require("rzls.razor")
 
 local M = {}
 
@@ -83,6 +84,7 @@ function M.setup(config)
                 end,
                 root_dir = root_dir,
                 on_attach = function(client, bufnr)
+                    razor.apply_highlights()
                     documentstore.register_vbufs(bufnr)
                     rzlsconfig.on_attach(client, bufnr)
                     if not client.hacked_semantic then
@@ -108,7 +110,7 @@ function M.setup(config)
                                         character = 0,
                                     },
                                     ["end"] = {
-                                        line = vim.api.nvim_buf_line_count(tbufnr) - 1,
+                                        line = vim.api.nvim_buf_line_count(tbufnr),
                                         character = (
                                             string.len(vim.api.nvim_buf_get_lines(tbufnr, -2, -1, true)[1]) - 1
                                         )
@@ -138,6 +140,13 @@ function M.setup(config)
             vim.lsp.buf_attach_client(ev.buf, lsp_client_id)
         end,
         group = au,
+    })
+
+    vim.treesitter.language.register("html", { "razor" })
+
+    vim.api.nvim_create_autocmd("ColorScheme", {
+        group = au,
+        callback = razor.apply_highlights,
     })
 end
 
