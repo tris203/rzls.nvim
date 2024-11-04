@@ -7,7 +7,6 @@ local empty_response = {}
 ---@param _ctx lsp.HandlerContext
 ---@param _config table
 return function(_err, result, _ctx, _config)
-    vim.print("Called razor/provideSemanticTokensRange")
     local vd = documentstore.get_virtual_document(
         result.textDocument.uri,
         result.requiredHostDocumentVersion,

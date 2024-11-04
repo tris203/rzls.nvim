@@ -85,4 +85,26 @@ function M.map_to_document_ranges(lsp, bufnr, language_kind, ranges, cb)
     }, cb)
 end
 
+---@type table<string, vim.api.keyset.highlight>
+--TODO: Extend this to cover all razor highlights
+-- https://github.com/dotnet/vscode-csharp/blob/802be7399e947ab82f2a69780d43a57c1d5be6aa/package.json#L4761
+local razor_highlights = {
+    ["@lsp.type.razorComment"] = { link = "Comment" },
+    ["@lsp.type.razorCommentStar"] = { link = "Comment" },
+    ["@lsp.type.razorCommentTransition"] = { link = "Comment" },
+    ["@lsp.type.controlKeyword"] = { link = "Statement" },
+    ["@lsp.type.punctuation"] = { link = "@punctuation.bracket" },
+    ["@lsp.type.razorTransition"] = { link = "Keyword" },
+    ["@lsp.type.razorDirective"] = { link = "Keyword" },
+    ["@lsp.type.razorDirectiveAttribute"] = { link = "Keyword" },
+    ["@lsp.type.field"] = { link = "@variable" },
+    ["@lsp.type.variable.razor"] = { link = "@variable" },
+}
+
+M.apply_highlights = function()
+    for hl_group, hl in pairs(razor_highlights) do
+        vim.api.nvim_set_hl(0, hl_group, hl)
+    end
+end
+
 return M
