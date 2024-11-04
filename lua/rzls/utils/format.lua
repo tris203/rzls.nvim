@@ -67,7 +67,24 @@ function M.compute_minimal_edits(source_buf, target_edit)
         vim.list_extend(edits, text_edits)
     end
 
-    -- return vim.print(edits)
+    local contains_non_whitespace_edit = vim.iter(edits):any(function(edit)
+        return edit.newText:find("%S") ~= nil
+    end)
+
+    -- Diff the whole text if we encounter a non whitespace character in the edit.
+    -- This might happen when the formatted document deletes many lines
+    -- and `vim.diff` split those deletions into multiple hunks.
+    --
+    -- This is rare but it might happen.
+    if contains_non_whitespace_edit then
+        vim.print("Performing slow formatting diff")
+        edits = lcs.to_lsp_edits(
+            lcs.diff(source_text, target_text),
+            target_edit.range.start.line,
+            target_edit.range.start.character
+        )
+    end
+
     return edits
 end
 
