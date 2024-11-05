@@ -54,12 +54,6 @@ M.language_kinds = {
     razor = 3,
 }
 
-M.lsp_response_lang = {
-    [1] = "csharp",
-    [2] = "markdown",
-    [3] = "markdown",
-}
-
 M.virtual_suffixes = {
     html = "__virtual.html",
     csharp = "__virtual.cs",

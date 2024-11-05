@@ -53,14 +53,9 @@ return function(params)
     }, nil, razor_bufnr)
 
     if response and response.result ~= nil and response.result.ranges[1] ~= nil then
-        ---@type lsp.MarkedStringWithLanguage
-        local message = {
-            language = razor.lsp_response_lang[language_query_response.result.kind],
-            value = hover_result.result.contents.value,
-        }
         ---@type lsp.Hover
         return {
-            contents = message,
+            contents = hover_result.result.contents.value,
             range = response.result.ranges[1],
         }
     end
