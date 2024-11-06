@@ -1,5 +1,6 @@
 local M = {}
 local razor = require("rzls.razor")
+local Log = require("rzls.log")
 
 M.check = function()
     vim.health.start("rzls.nvim report")
@@ -33,6 +34,15 @@ M.check = function()
         vim.health.ok("roslyn lsp connected via pipe: " .. roslyn_pipe_id)
     else
         vim.health.error("roslyn pipe not connected")
+    end
+
+    vim.health.start("rzls.nvim logs")
+
+    for log, messages in Log() do
+        vim.health.start(log .. " logs:")
+        for _, message in ipairs(messages) do
+            vim.health.info("[" .. log .. "]" .. message)
+        end
     end
 end
 return M

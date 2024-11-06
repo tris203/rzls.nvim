@@ -1,3 +1,4 @@
+local Log = require("rzls.log")
 local M = {}
 
 local requests = {
@@ -19,15 +20,18 @@ local requests = {
 function M.server()
     local srv = {}
     local closing = false
+    Log.aftershave = "Started aftershave server"
 
     function srv.request(method, params, handler)
         if requests[method] then
+            Log.aftershave = "Handled " .. method
             local response = requests[method](params)
             handler(nil, response)
         elseif method == "exit" then
+            Log.aftershave = "Closing aftershave server"
             closing = true
         else
-            assert(false, "Unhandled method: " .. method)
+            Log.aftershave = "Unhandled method " .. method
         end
     end
 

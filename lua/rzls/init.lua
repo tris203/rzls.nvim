@@ -1,6 +1,7 @@
 local handlers = require("rzls.handlers")
 local documentstore = require("rzls.documentstore")
 local razor = require("rzls.razor")
+local Log = require("rzls.log")
 
 local M = {}
 
@@ -41,6 +42,7 @@ local extraCapabilities = {
 
 ---@param config rzls.Config
 function M.setup(config)
+    Log.rzlsnvim = "Ran Setup"
     local rzlsconfig = vim.tbl_deep_extend("force", defaultConfg, config)
     rzlsconfig.path = rzlsconfig.path or get_cmd_path(rzlsconfig)
     vim.filetype.add({
@@ -156,6 +158,7 @@ end
 function M.load_existing_files(path)
     local files = vim.fn.glob(path .. "/**/*.razor", true, true)
     for _, file in ipairs(files) do
+        Log.rzlsnvim = "Preloading " .. file .. " into documentstore"
         documentstore.register_vbufs_by_path(file)
     end
 end
@@ -172,6 +175,7 @@ function M.watch_new_files(path)
         assert(not err, err)
         vim.print("file modified:" .. filename)
         if vim.fn.fnamemodify(filename, ":e") == "razor" then
+            Log.rzlsnvim = "Filesystem changed  " .. filename .. " updating documentstore"
             documentstore.register_vbufs_by_path(filename)
         end
     end)
