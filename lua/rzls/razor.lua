@@ -54,6 +54,7 @@ M.language_kinds = {
     razor = 3,
 }
 
+---@enum (key) razor.VirtualSuffix
 M.virtual_suffixes = {
     html = "__virtual.html",
     csharp = "__virtual.cs",

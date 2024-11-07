@@ -84,14 +84,15 @@ function M.setup(config)
                     razor.apply_highlights()
                     documentstore.register_vbufs(bufnr)
                     rzlsconfig.on_attach(client, bufnr)
-                    if not client.hacked_semantic then
+                    if not client.hacked_capabilities then
                         client.server_capabilities = vim.tbl_deep_extend("force", client.server_capabilities, {
                             semanticTokensProvider = {
                                 full = true,
                             },
+                            renameProvider = false,
                         })
                         ---@diagnostic disable-next-line: inject-field
-                        client.hacked_semantic = true
+                        client.hacked_capabilities = true
                     end
                     local req = client.request
                     client.request = function(method, params, handler, tbufnr)

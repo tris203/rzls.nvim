@@ -8,6 +8,7 @@ local requests = {
                 hoverProvider = true,
                 definitionProvider = true,
                 referencesProvider = true,
+                renameProvider = { prepareProvider = false },
             },
         }
     end,
@@ -15,10 +16,12 @@ local requests = {
     ["textDocument/hover"] = require("rzls.server.methods.hover"),
     ["textDocument/definition"] = require("rzls.server.methods.definition"),
     ["textDocument/references"] = require("rzls.server.methods.references"),
+    ["textDocument/rename"] = require("rzls.server.methods.rename"),
 }
 
 local noops = {
     ["initialized"] = true,
+    ["textDocument/didSave"] = true,
 }
 
 function M.server()
