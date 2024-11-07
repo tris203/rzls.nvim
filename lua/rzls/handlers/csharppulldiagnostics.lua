@@ -1,6 +1,8 @@
 local documentstore = require("rzls.documentstore")
 local razor = require("rzls.razor")
 
+local empty_response = {}
+
 ---@param _err lsp.ResponseError
 ---@param result lsp.DocumentDiagnosticParams
 ---@param _ctx lsp.HandlerContext
@@ -8,6 +10,7 @@ local razor = require("rzls.razor")
 return function(_err, result, _ctx, _config)
     local virtual_document = documentstore.get_virtual_document(
         result.textDocument.uri,
+        ---@diagnostic disable-next-line: undefined-field
         result._razor_hostDocumentVersion,
         razor.language_kinds.csharp
     )
@@ -29,7 +32,9 @@ return function(_err, result, _ctx, _config)
         nil,
         virtual_document.buf
     )
-    assert(diagnostic_response)
+    if not diagnostic_response then
+        return empty_response
+    end
 
     if diagnostic_response.err then
         return nil, diagnostic_response.err
