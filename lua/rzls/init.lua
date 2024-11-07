@@ -66,7 +66,7 @@ function M.setup(config)
                     rzlsconfig.path,
                     "--logLevel",
                     "0",
-                    "--DelegateToCSharpOnDiagnosticsPublish",
+                    "--DelegateToCSharpOnDiagnosticPublish",
                     "true",
                     "--UpdateBuffersForClosedDocuments",
                     "true",
@@ -124,10 +124,8 @@ function M.setup(config)
                 end,
                 capabilities = vim.tbl_deep_extend("force", rzlsconfig.capabilities, extraCapabilities),
                 settings = {
-                    ["razor.server.trace"] = "Trace",
                     html = vim.empty_dict(),
                     razor = vim.empty_dict(),
-                    ["vs.editor.razor"] = vim.empty_dict(),
                 },
                 handlers = handlers,
             })

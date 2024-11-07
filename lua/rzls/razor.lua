@@ -99,6 +99,8 @@ local razor_highlights = {
     ["@lsp.type.razorDirectiveAttribute"] = { link = "Keyword" },
     ["@lsp.type.field"] = { link = "@variable" },
     ["@lsp.type.variable.razor"] = { link = "@variable" },
+    ["@lsp.type.razorComponentElement.razor"] = { link = "@lsp.type.class" },
+    ["@lsp.type.razorTagHelperElement.razor"] = { link = "@lsp.type.class" },
 }
 
 M.apply_highlights = function()

@@ -2,7 +2,7 @@ local documentstore = require("rzls.documentstore")
 local razor = require("rzls.razor")
 
 local not_implemented = function(err, result, ctx, config)
-    vim.print("Called" .. ctx.method)
+    vim.print("Called " .. ctx.method)
     vim.print(vim.inspect(err))
     vim.print(vim.inspect(result))
     vim.print(vim.inspect(ctx))
@@ -65,7 +65,7 @@ return {
     ["razor/references"] = not_implemented,
 
     -- Called to get C# diagnostics from Roslyn when publishing diagnostics for VS Code
-    ["razor/csharpPullDiagnostics"] = not_implemented,
+    ["razor/csharpPullDiagnostics"] = require("rzls.handlers.csharppulldiagnostics"),
     ["textDocument/colorPresentation"] = not_supported,
     ["razor/completion"] = require("rzls.handlers.completion"),
 }

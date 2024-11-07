@@ -1,7 +1,9 @@
 local documentstore = require("rzls.documentstore")
 local razor = require("rzls.razor")
+
 ---@type number[]
 local empty_response = {}
+
 ---@param _err lsp.ResponseError
 ---@param result razor.ProvideSemanticTokensParams
 ---@param _ctx lsp.HandlerContext
