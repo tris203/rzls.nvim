@@ -17,6 +17,10 @@ local requests = {
     ["textDocument/references"] = require("rzls.server.methods.references"),
 }
 
+local noops = {
+    ["initialized"] = true,
+}
+
 function M.server()
     local srv = {}
     local closing = false
@@ -31,13 +35,15 @@ function M.server()
             Log.aftershave = "Closing aftershave server"
             closing = true
         else
-            Log.aftershave = "Unhandled method " .. method
+            Log.aftershave = "Unhandled request " .. method
         end
     end
 
     function srv.notify(method, _params)
         if method == "exit" then
             closing = true
+        elseif not noops[method] then
+            Log.aftershave = "Unhandled notification " .. method
         end
     end
 
