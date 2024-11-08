@@ -9,6 +9,10 @@ local requests = {
                 definitionProvider = true,
                 referencesProvider = true,
                 renameProvider = { prepareProvider = false },
+                signatureHelpProvider = {
+                    triggerCharacters = { "(", ",", "<" },
+                    retriggerCharacters = { ">", ")" },
+                },
             },
         }
     end,
@@ -17,6 +21,7 @@ local requests = {
     ["textDocument/definition"] = require("rzls.server.methods.definition"),
     ["textDocument/references"] = require("rzls.server.methods.references"),
     ["textDocument/rename"] = require("rzls.server.methods.rename"),
+    ["textDocument/signatureHelp"] = require("rzls.server.methods.signaturehelp"),
 }
 
 local noops = { ["initialized"] = true, ["textDocument/didSave"] = true }
