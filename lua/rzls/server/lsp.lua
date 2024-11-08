@@ -19,10 +19,7 @@ local requests = {
     ["textDocument/rename"] = require("rzls.server.methods.rename"),
 }
 
-local noops = {
-    ["initialized"] = true,
-    ["textDocument/didSave"] = true,
-}
+local noops = { ["initialized"] = true, ["textDocument/didSave"] = true }
 
 function M.server()
     local srv = {}

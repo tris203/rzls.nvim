@@ -13,7 +13,7 @@ local razor = require("rzls.razor")
 ---@param _config table
 return function(err, result, _ctx, _config)
     if err then
-        vim.notify("Error in razor/htmlFormatting", vim.log.levels.ERROR)
+        vim.notify("Error in razor/htmlFormatting", vim.log.levels.ERROR, { title = "rzls.nvim" })
         return {}, nil
     end
 

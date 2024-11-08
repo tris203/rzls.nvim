@@ -33,7 +33,7 @@ return function(params)
 
     if language_query_response.result.kind ~= razor.language_kinds.csharp then
         --- vscode only supports c# renames
-        vim.notify("Rename is only supported for C#.", vim.log.levels.ERROR)
+        vim.notify("Rename is only supported for C#.", vim.log.levels.ERROR, { title = "rzls.nvim" })
         return nil
     end
 

@@ -30,7 +30,6 @@ end
 local function get_or_create_buffer_for_filepath(filepath, filetype)
     local buf = buffer_with_name(filepath)
     if not buf then
-        vim.print(filepath)
         buf = vim.api.nvim_create_buf(false, false)
         vim.api.nvim_buf_set_name(buf, filepath)
         vim.api.nvim_set_option_value("ft", filetype, { buf = buf })
@@ -121,7 +120,7 @@ function M.initialize(client)
         })
     end
 
-    vim.notify("Connected to roslyn via pipe:" .. pipe_name)
+    vim.notify("Connected to roslyn via pipe:" .. pipe_name, vim.log.levels.INFO, { title = "rzls.nvim" })
 
     initialize_roslyn()
 end
