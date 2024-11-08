@@ -1,6 +1,7 @@
 local handlers = require("rzls.handlers")
 local documentstore = require("rzls.documentstore")
 local razor = require("rzls.razor")
+local Log = require("rzls.log")
 
 local M = {}
 
@@ -26,11 +27,6 @@ local function get_cmd_path(config)
     return get_mason_installation()
 end
 
----@type table<string, fun(err, result, ctx, config)>
-local wrapper_func = {
-    ["textDocument/hover"] = require("rzls.clienthandlers.hover"),
-}
-
 ---@type rzls.Config
 local defaultConfg = {
     on_attach = function()
@@ -46,6 +42,7 @@ local extraCapabilities = {
 
 ---@param config rzls.Config
 function M.setup(config)
+    Log.rzlsnvim = "Ran Setup"
     local rzlsconfig = vim.tbl_deep_extend("force", defaultConfg, config)
     rzlsconfig.path = rzlsconfig.path or get_cmd_path(rzlsconfig)
     vim.filetype.add({
@@ -87,20 +84,18 @@ function M.setup(config)
                     razor.apply_highlights()
                     documentstore.register_vbufs(bufnr)
                     rzlsconfig.on_attach(client, bufnr)
-                    if not client.hacked_semantic then
+                    if not client._rzls_hacked_capabilities then
                         client.server_capabilities = vim.tbl_deep_extend("force", client.server_capabilities, {
                             semanticTokensProvider = {
                                 full = true,
                             },
+                            renameProvider = false,
                         })
                         ---@diagnostic disable-next-line: inject-field
-                        client.hacked_semantic = true
+                        client._rzls_hacked_capabilities = true
                     end
                     local req = client.request
                     client.request = function(method, params, handler, tbufnr)
-                        if wrapper_func[method] then
-                            return req(method, params, wrapper_func[method], tbufnr)
-                        end
                         if method == vim.lsp.protocol.Methods.textDocument_semanticTokens_full then
                             return req(vim.lsp.protocol.Methods.textDocument_semanticTokens_range, {
                                 textDocument = params.textDocument,
@@ -136,6 +131,19 @@ function M.setup(config)
             end
 
             vim.lsp.buf_attach_client(ev.buf, lsp_client_id)
+
+            local aftershave_client_id = vim.lsp.start({
+                name = "aftershave",
+                root_dir = root_dir,
+                cmd = require("rzls.server.lsp").server,
+            })
+
+            if aftershave_client_id == nil then
+                vim.notify("Could not start aftershave LSP", vim.log.levels.ERROR, { title = "rzls.nvim" })
+                return
+            end
+
+            vim.lsp.buf_attach_client(ev.buf, aftershave_client_id)
         end,
         group = au,
     })
@@ -151,6 +159,7 @@ end
 function M.load_existing_files(path)
     local files = vim.fn.glob(path .. "/**/*.razor", true, true)
     for _, file in ipairs(files) do
+        Log.rzlsnvim = "Preloading " .. file .. " into documentstore"
         documentstore.register_vbufs_by_path(file)
     end
 end
@@ -165,8 +174,9 @@ function M.watch_new_files(path)
         recursive = true,
     }, function(err, filename, _events)
         assert(not err, err)
-        vim.print("file modified:" .. filename)
+        Log.rzlsnvim = "Filesystem changed - " .. filename
         if vim.fn.fnamemodify(filename, ":e") == "razor" then
+            Log.rzlsnvim = "Filesystem changed  " .. filename .. " updating documentstore"
             documentstore.register_vbufs_by_path(filename)
         end
     end)

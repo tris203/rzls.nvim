@@ -77,7 +77,6 @@ function M.compute_minimal_edits(source_buf, target_edit)
     --
     -- This is rare but it might happen.
     if contains_non_whitespace_edit then
-        vim.print("Performing slow formatting diff")
         edits = lcs.to_lsp_edits(
             lcs.diff(source_text, target_text),
             target_edit.range.start.line,

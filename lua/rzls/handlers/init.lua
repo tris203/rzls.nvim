@@ -1,5 +1,6 @@
 local documentstore = require("rzls.documentstore")
 local razor = require("rzls.razor")
+local Log = require("rzls.log")
 
 local not_implemented = function(err, result, ctx, config)
     vim.print("Called " .. ctx.method)
@@ -68,4 +69,8 @@ return {
     ["razor/csharpPullDiagnostics"] = require("rzls.handlers.csharppulldiagnostics"),
     ["textDocument/colorPresentation"] = not_supported,
     ["razor/completion"] = require("rzls.handlers.completion"),
+    ["window/logMessage"] = function(_, result)
+        Log.rzls = result.message
+        return vim.lsp.handlers[vim.lsp.protocol.Methods.window_logMessage]
+    end,
 }
