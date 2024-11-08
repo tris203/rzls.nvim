@@ -15,8 +15,6 @@ local not_supported = function()
     return {}, nil
 end
 
-local orig_log = vim.lsp.handlers[vim.lsp.protocol.Methods.window_logMessage]
-
 return {
     -- VS Windows only
     ["razor/inlineCompletion"] = not_implemented,
@@ -73,6 +71,6 @@ return {
     ["razor/completion"] = require("rzls.handlers.completion"),
     ["window/logMessage"] = function(_, result)
         Log.rzls = result.message
-        return orig_log
+        return vim.lsp.handlers[vim.lsp.protocol.Methods.window_logMessage]
     end,
 }
