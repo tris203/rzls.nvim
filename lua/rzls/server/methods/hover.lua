@@ -55,7 +55,7 @@ return function(params)
     if response and response.result ~= nil and response.result.ranges[1] ~= nil then
         ---@type lsp.Hover
         return {
-            contents = hover_result.result.contents.value,
+            contents = hover_result.result.contents,
             range = response.result.ranges[1],
         }
     end
