@@ -170,4 +170,61 @@ function VirtualDocument:index_of_position(position)
     return -1
 end
 
+---@param position lsp.Position
+---@return razor.LanguageQueryResponse?
+function VirtualDocument:language_query(position)
+    assert(self.kind == razor.language_kinds.razor, "Can only map to document ranges for razor documents")
+    local lsp = self:get_lsp_client()
+    if not lsp then
+        return nil
+    end
+    local response = lsp.request_sync("razor/languageQuery", {
+        position = position,
+        uri = vim.uri_from_bufnr(self.buf),
+    }, nil, self.buf)
+    if not response or response.err then
+        return nil
+    end
+    return response.result
+end
+
+---@param language_kind razor.LanguageKind
+---@param ranges lsp.Range[]
+---@return razor.MapToDocumentRangesResponse?
+function VirtualDocument:map_to_document_ranges(language_kind, ranges)
+    assert(self.kind == razor.language_kinds.razor, "Can only map to document ranges for razor documents")
+    local lsp = self:get_lsp_client()
+    if not lsp then
+        return nil
+    end
+    local response = lsp.request_sync("razor/mapToDocumentRanges", {
+        razorDocumentUri = vim.uri_from_bufnr(self.buf),
+        kind = language_kind,
+        projectedRanges = ranges,
+    }, nil, self.buf)
+    if not response then
+        return nil
+    end
+    return response.result
+end
+
+--- issues an LSP request to the virtual document.
+--- Please use by passing a method from `vim.lsp.protocl.Methods`
+--- and type the expected return value as optional.
+---@param method string
+---@param params table
+---@param buf number?
+---@return any
+function VirtualDocument:lsp_request(method, params, buf)
+    local lsp = self:get_lsp_client()
+    if not lsp then
+        return nil
+    end
+    local result = lsp.request_sync(method, params, nil, buf or self.buf)
+    if not result or result.err then
+        return nil
+    end
+    return result.result
+end
+
 return VirtualDocument

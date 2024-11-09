@@ -9,40 +9,30 @@ return function(params)
 
     local rvd = documentstore.get_virtual_document(params.textDocument.uri, razor.language_kinds.razor)
     assert(rvd, "Could not find virtual document")
-    local client = rvd:get_lsp_client()
-    assert(client, "Could not find Razor Client")
 
-    local language_query_response = client.request_sync("razor/languageQuery", {
-        position = position,
-        uri = rvd.path,
-    }, nil, rvd.buf)
+    local language_query_response = rvd:language_query(position)
 
-    assert(language_query_response)
-
-    local lsp_client = vim.lsp.get_clients({ name = razor.lsp_names[language_query_response.result.kind] })[1]
-    assert(lsp_client, "Could not find LSP Client for response type: " .. language_query_response.result.kind)
+    assert(language_query_response, "Could not find language query response")
 
     local vd = documentstore.get_virtual_document(
         rvd.path,
-        language_query_response.result.kind,
-        language_query_response.result.hostDocumentVersion
+        language_query_response.kind,
+        language_query_response.hostDocumentVersion
     )
     assert(vd, "Could not find virtual document from projection result")
 
-    ---@type lsp.SignatureHelpParams
-    local sigHelpReq = {
+    ---@type lsp.SignatureHelp?
+    local sig_help = vd:lsp_request(vim.lsp.protocol.Methods.textDocument_signatureHelp, {
         textDocument = {
             uri = vd.path,
         },
-        position = language_query_response.result.position,
+        position = language_query_response.position,
         context = params.context,
-    }
+    })
 
-    local sig_help = lsp_client.request_sync("textDocument/signatureHelp", sigHelpReq, nil, rvd.buf)
-
-    if not sig_help or sig_help.err then
+    if not sig_help then
         return nil
     end
 
-    return sig_help.result
+    return sig_help
 end
