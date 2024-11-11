@@ -21,7 +21,7 @@ auto-completion, go-to-definition, and more all from within neovim 💻🔧
 | Formatting            | ✅          |
 | Rename Symbol         | ✅          |
 | Signature Help        | ✅          |
-| Completions           | ❌(Partial) |
+| Completions           | ✅          |
 | Code Actions          | ❌          |
 | Inlay Hints           | ❌          |
 | Folding               | ❌          |
