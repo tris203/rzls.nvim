@@ -22,7 +22,9 @@ VirtualDocument.__index = VirtualDocument
 ---@param kind razor.LanguageKind
 ---@return rzls.VirtualDocument
 function VirtualDocument:new(bufnr, kind)
-    vim.validate("bufnr", bufnr, { "string", "number" })
+    vim.validate({
+        bufnr = { bufnr, { "string", "number" } },
+    })
 
     local path = type(bufnr) == "string" and bufnr or vim.api.nvim_buf_get_name(bufnr --[[@as integer]])
     local buf = type(bufnr) == "string" and vim.uri_to_bufnr("file://" .. bufnr) or bufnr
