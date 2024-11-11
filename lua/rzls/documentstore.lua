@@ -83,6 +83,7 @@ function M.register_vbufs(source_buf)
     return M.register_vbufs_by_path(currentFile)
 end
 
+---@async
 ---@param uri string
 ---@param type razor.LanguageKind
 ---@param version integer | "any"?
