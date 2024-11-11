@@ -1,6 +1,7 @@
 local razor = require("rzls.razor")
 local utils = require("rzls.utils")
 local VirtualDocument = require("rzls.virtual_document")
+local Log = require("rzls.log")
 
 ---@class rzls.ProjectedDocuments
 ---@field virtual_html rzls.ProjectedDocument
@@ -116,6 +117,17 @@ function M.get_virtual_document(uri, type, version)
     end
 
     dispose_handler()
+
+    -- The client might be ahead of requested version due to other document
+    -- changes while we were synchronizing
+    if virtual_document.host_document_version ~= version then
+        Log.rzlsnvim = string.format(
+            'Mismatch between virtual document version. Uri: "%s". Server: %d. Client: %d',
+            virtual_document.path,
+            version,
+            virtual_document.host_document_version
+        )
+    end
 
     return virtual_document
 end
