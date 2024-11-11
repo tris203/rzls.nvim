@@ -111,13 +111,17 @@ return function(err, result, _ctx, _config)
     assert(virtual_document, "No virtual document found")
 
     if result.identifier.version ~= virtual_document.host_document_version then
-        vim.print(
-            string.format(
-                "Mismatched between document versions. Server: %d. Client: %d",
-                result.identifier.version,
-                virtual_document.host_document_version
+        vim.schedule(function()
+            vim.notify(
+                string.format(
+                    "Mismatched between document versions. Server: %d. Client: %d",
+                    result.identifier.version,
+                    virtual_document.host_document_version
+                ),
+                vim.log.levels.WARN,
+                { title = "rzls.nvim" }
             )
-        )
+        end)
         return {
             items = {},
             isIncomplete = false,

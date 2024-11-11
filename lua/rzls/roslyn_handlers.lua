@@ -18,7 +18,6 @@ local function roslyn_razor_provideDynamicFileHandler(_err, result, _ctx, _confi
     local bufnr = vd.buf
 
     if bufnr == nil then
-        vim.print(vim.inspect(result))
         return nil, vim.lsp.rpc.rpc_response_error(-32600, "Could not find requested document")
     end
 
