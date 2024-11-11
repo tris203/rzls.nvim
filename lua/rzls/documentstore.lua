@@ -27,7 +27,7 @@ local function buffer_with_name(name)
     end
 end
 
-local function get_or_create_buffer_for_filepath(filepath, filetype)
+local function get_or_create_vbuffer_for_filepath(filepath, filetype)
     local buf = buffer_with_name(filepath)
     if not buf then
         buf = vim.api.nvim_create_buf(false, false)
@@ -47,18 +47,19 @@ function M.register_vbufs_by_path(current_file)
     virtual_documents[current_file] = virtual_documents[current_file] or {}
 
     if vim.tbl_isempty(virtual_documents[current_file]) then
-        virtual_documents[current_file] = VirtualDocument:new(current_file, razor.language_kinds.razor)
+        local buf = vim.uri_to_bufnr("file://" .. current_file)
+        virtual_documents[current_file] = VirtualDocument:new(buf, razor.language_kinds.razor)
     end
 
     if virtual_documents[current_file][razor.language_kinds.csharp] == nil then
-        local buf = get_or_create_buffer_for_filepath(current_file .. razor.virtual_suffixes.csharp, "cs")
+        local buf = get_or_create_vbuffer_for_filepath(current_file .. razor.virtual_suffixes.csharp, "cs")
 
         virtual_documents[current_file][razor.language_kinds.csharp] =
             VirtualDocument:new(buf, razor.language_kinds.csharp)
     end
 
     if virtual_documents[current_file][razor.language_kinds.html] == nil then
-        local buf = get_or_create_buffer_for_filepath(current_file .. razor.virtual_suffixes.html, "html")
+        local buf = get_or_create_vbuffer_for_filepath(current_file .. razor.virtual_suffixes.html, "html")
 
         virtual_documents[current_file][razor.language_kinds.html] = VirtualDocument:new(buf, razor.language_kinds.html)
     end

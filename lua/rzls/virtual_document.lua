@@ -18,22 +18,15 @@ local VirtualDocument = {}
 
 VirtualDocument.__index = VirtualDocument
 
----@param bufnr integer|string
+---@param bufnr integer
 ---@param kind razor.LanguageKind
 ---@return rzls.VirtualDocument
 function VirtualDocument:new(bufnr, kind)
-    vim.validate({
-        bufnr = { bufnr, { "string", "number" } },
-    })
-
-    local path = type(bufnr) == "string" and bufnr or vim.api.nvim_buf_get_name(bufnr --[[@as integer]])
-    local buf = type(bufnr) == "string" and vim.uri_to_bufnr("file://" .. bufnr) or bufnr
-
     return setmetatable({
-        buf = buf,
+        buf = bufnr,
         host_document_version = 0,
         content = "",
-        path = path,
+        path = vim.uri_from_bufnr(bufnr),
         kind = kind,
         change_event = EventEmitter:new(),
     }, self)
