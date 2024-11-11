@@ -6,7 +6,7 @@ local eq = assert.are.same
 describe("virtual document", function()
     local vd
     local path = "tests/rzls/fixtures/vdtest.razor__virtual.html"
-    local full_path = vim.loop.cwd() .. "/" .. path
+    local full_path = "file://" .. vim.loop.cwd() .. "/" .. path
     vim.cmd.edit({ args = { path } })
     local ls = vim.fn.getbufinfo({ buflisted = 1 })
     local bufnr = ls[1].bufnr

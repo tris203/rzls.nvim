@@ -11,8 +11,8 @@ return function(err, result, _ctx, _config)
     if result.originatingKind == razor.language_kinds.csharp and result.completionItem.data.TextDocument ~= nil then
         local virtual_document = documentstore.get_virtual_document(
             result.identifier.textDocumentIdentifier.uri,
-            result.identifier.version,
-            result.originatingKind
+            result.originatingKind,
+            result.identifier.version
         )
         assert(virtual_document, "No virtual document found")
 

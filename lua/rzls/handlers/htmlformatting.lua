@@ -19,8 +19,8 @@ return function(err, result, _ctx, _config)
 
     local virtual_document = documentstore.get_virtual_document(
         result.textDocument.uri,
-        result._razor_hostDocumentVersion,
-        razor.language_kinds.html
+        razor.language_kinds.html,
+        result.hostDocumentVersion
     )
     assert(virtual_document, "Could not find html virtual document")
 

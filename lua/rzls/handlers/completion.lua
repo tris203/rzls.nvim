@@ -105,8 +105,8 @@ return function(err, result, _ctx, _config)
 
     local virtual_document = documentstore.get_virtual_document(
         result.identifier.textDocumentIdentifier.uri,
-        result.identifier.version,
-        result.projectedKind
+        result.projectedKind,
+        result.identifier.version
     )
     assert(virtual_document, "No virtual document found")
 

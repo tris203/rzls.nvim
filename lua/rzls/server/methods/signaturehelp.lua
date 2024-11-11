@@ -10,7 +10,7 @@ return function(params)
     local razor_bufnr = vim.uri_to_bufnr(params.textDocument.uri)
     local razor_docname = vim.api.nvim_buf_get_name(razor_bufnr)
 
-    local rvd = documentstore.get_virtual_document(razor_docname, 0, razor.language_kinds.razor)
+    local rvd = documentstore.get_virtual_document(razor_docname, razor.language_kinds.razor)
     assert(rvd, "Could not find virtual document")
     local client = rvd:get_lsp_client()
     assert(client, "Could not find Razor Client")
@@ -25,7 +25,11 @@ return function(params)
     local lsp_client = vim.lsp.get_clients({ name = razor.lsp_names[language_query_response.result.kind] })[1]
     assert(lsp_client, "Could not find LSP Client for response type: " .. language_query_response.result.kind)
 
-    local vd = documentstore.get_virtual_document(razor_docname, 0, language_query_response.result.kind)
+    local vd = documentstore.get_virtual_document(
+        razor_docname,
+        language_query_response.result.kind,
+        language_query_response.result.hostDocumentVersion
+    )
     assert(vd, "Could not find virtual document from projection result")
 
     ---@type lsp.SignatureHelpParams

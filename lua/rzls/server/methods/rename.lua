@@ -19,7 +19,7 @@ return function(params)
     local razor_bufnr = vim.uri_to_bufnr(params.textDocument.uri)
     local razor_docname = vim.api.nvim_buf_get_name(razor_bufnr)
 
-    local rvd = documentstore.get_virtual_document(razor_docname, 0, razor.language_kinds.razor)
+    local rvd = documentstore.get_virtual_document(razor_docname, razor.language_kinds.razor)
     assert(rvd, "Could not find virtual document")
     local client = rvd:get_lsp_client()
     assert(client, "Could not find Razor Client")
@@ -37,7 +37,11 @@ return function(params)
         return nil
     end
 
-    local csvd = documentstore.get_virtual_document(razor_docname, 0, razor.language_kinds.csharp)
+    local csvd = documentstore.get_virtual_document(
+        razor_docname,
+        razor.language_kinds.csharp,
+        language_query_response.result.hostDocumentVersion
+    )
     assert(csvd, "Could not find virtual document")
 
     local roslyn_client = csvd:get_lsp_client()

@@ -12,7 +12,8 @@ describe("documentstore", function()
         local init_buf = vim.api.nvim_list_bufs()
         documentstore.register_vbufs(init_buf[1])
         for _, lang in pairs({ 1, 2 }) do
-            local doc = documentstore.get_virtual_document(full_path, 0, lang)
+            local doc = documentstore.get_virtual_document(full_path, lang, 0)
+            assert(doc, "Could not find virtual document")
             eq(doc.kind, lang)
         end
         local bufs = vim.api.nvim_list_bufs()

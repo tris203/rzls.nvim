@@ -11,8 +11,8 @@ local empty_response = {}
 return function(_err, result, _ctx, _config)
     local vd = documentstore.get_virtual_document(
         result.textDocument.uri,
-        result.requiredHostDocumentVersion,
-        razor.language_kinds.csharp
+        razor.language_kinds.csharp,
+        result.requiredHostDocumentVersion
     )
     if not vd then
         return { tokens = empty_response, hostDocumentSyncVersion = result.requiredHostDocumentVersion }, nil

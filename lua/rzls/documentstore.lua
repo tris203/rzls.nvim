@@ -94,14 +94,15 @@ local function uri_to_path(uri)
 end
 
 ---@param uri string
----@param version integer
 ---@param type razor.LanguageKind
+---@param version integer | "any"?
 ---@return rzls.VirtualDocument | nil
-function M.get_virtual_document(uri, version, type)
+function M.get_virtual_document(uri, type, version)
     local doc = virtual_documents[uri_to_path(uri)]
     if type == razor.language_kinds.razor then
         return doc
     end
+    assert(version, "version is required for virtual documents")
 
     ---@type rzls.VirtualDocument
     local virtual_document = doc and doc[type]
@@ -110,7 +111,7 @@ function M.get_virtual_document(uri, version, type)
         return nil
     end
 
-    if version == nil or virtual_document.host_document_version == version then
+    if version == "any" or virtual_document.host_document_version == version then
         return virtual_document
     end
 
