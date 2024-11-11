@@ -18,9 +18,16 @@ M.check = function()
 
         for _, lang in pairs({ "csharp", "html" }) do
             local doc = docs[razor.language_kinds[lang]]
-            if doc and doc.buf then
+            if doc and doc.buf and doc.path then
                 vim.health.ok(
-                    "  " .. lang .. " virtual document found: " .. doc.buf .. " v: " .. doc.host_document_version
+                    "  "
+                        .. lang
+                        .. " virtual document found: [buf:"
+                        .. doc.buf
+                        .. "] [v:"
+                        .. doc.host_document_version
+                        .. "]"
+                        .. doc.path
                 )
             else
                 vim.health.error("  " .. lang .. " virtual document not found")

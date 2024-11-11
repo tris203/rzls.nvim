@@ -11,14 +11,13 @@ local function roslyn_razor_provideDynamicFileHandler(_err, result, _ctx, _confi
     if result.razorDocument == nil then
         return nil, vim.lsp.rpc.rpc_response_error(-32602, "Missing razorDocument")
     end
-    local vd = documentstore.get_virtual_document(result.razorDocument.uri, 0, razor.language_kinds.csharp)
+    local vd = documentstore.get_virtual_document(result.razorDocument.uri, razor.language_kinds.csharp, "any")
     if not vd then
         return nil, vim.lsp.rpc.rpc_response_error(-32600, "Could not find requested document")
     end
     local bufnr = vd.buf
 
     if bufnr == nil then
-        vim.print(vim.inspect(result))
         return nil, vim.lsp.rpc.rpc_response_error(-32600, "Could not find requested document")
     end
 

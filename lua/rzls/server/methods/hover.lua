@@ -6,26 +6,23 @@ local razor = require("rzls.razor")
 return function(params)
     ---@type lsp.Position
     local position = params.position
-    ---@type integer
-    local razor_bufnr = vim.uri_to_bufnr(params.textDocument.uri)
-    local razor_docname = vim.api.nvim_buf_get_name(razor_bufnr)
 
-    local rvd = documentstore.get_virtual_document(razor_docname, 0, razor.language_kinds.razor)
+    local rvd = documentstore.get_virtual_document(params.textDocument.uri, razor.language_kinds.razor)
     assert(rvd, "Could not find virtual document")
     local client = rvd:get_lsp_client()
     assert(client, "Could not find Razor Client")
 
     local language_query_response = client.request_sync("razor/languageQuery", {
         position = position,
-        uri = vim.uri_from_bufnr(razor_bufnr),
-    }, nil, razor_bufnr)
+        uri = rvd.path,
+    }, nil, rvd.buf)
 
     assert(language_query_response)
 
     local virtual_document = documentstore.get_virtual_document(
-        vim.uri_from_bufnr(razor_bufnr),
-        language_query_response.result.hostDocumentVersion,
-        language_query_response.result.kind
+        rvd.path,
+        language_query_response.result.kind,
+        language_query_response.result.hostDocumentVersion
     )
     assert(virtual_document)
 
@@ -37,7 +34,7 @@ return function(params)
 
     local hover_result = virtual_buf_client.request_sync("textDocument/hover", {
         textDocument = {
-            uri = vim.uri_from_bufnr(virtual_document.buf),
+            uri = virtual_document.path,
         },
         position = language_query_response.result.position,
     }, nil, virtual_document.buf)
@@ -47,10 +44,10 @@ return function(params)
     end
 
     local response = client.request_sync("razor/mapToDocumentRanges", {
-        razorDocumentUri = vim.uri_from_bufnr(razor_bufnr),
+        razorDocumentUri = rvd.path,
         kind = language_query_response.result.kind,
         projectedRanges = { hover_result.result.range },
-    }, nil, razor_bufnr)
+    }, nil, rvd.buf)
 
     if response and response.result ~= nil and response.result.ranges[1] ~= nil then
         ---@type lsp.Hover

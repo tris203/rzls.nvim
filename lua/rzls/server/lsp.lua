@@ -32,24 +32,28 @@ function M.server()
     Log.aftershave = "Started aftershave server"
 
     function srv.request(method, params, handler)
-        if requests[method] then
-            Log.aftershave = "Handled " .. method
-            local response = requests[method](params)
-            handler(nil, response)
-        elseif method == "exit" then
-            Log.aftershave = "Closing aftershave server"
-            closing = true
-        else
-            Log.aftershave = "Unhandled request " .. method
-        end
+        coroutine.wrap(function()
+            if requests[method] then
+                Log.aftershave = "Handled " .. method
+                local response = requests[method](params)
+                handler(nil, response)
+            elseif method == "exit" then
+                Log.aftershave = "Closing aftershave server"
+                closing = true
+            else
+                Log.aftershave = "Unhandled request " .. method
+            end
+        end)()
     end
 
     function srv.notify(method, _params)
-        if method == "exit" then
-            closing = true
-        elseif not noops[method] then
-            Log.aftershave = "Unhandled notification " .. method
-        end
+        coroutine.wrap(function()
+            if method == "exit" then
+                closing = true
+            elseif not noops[method] then
+                Log.aftershave = "Unhandled notification " .. method
+            end
+        end)()
     end
 
     function srv.is_closing()
