@@ -16,18 +16,16 @@ return function(params)
     ---@type lsp.Position
     local position = params.position
     ---@type integer
-    local razor_bufnr = vim.uri_to_bufnr(params.textDocument.uri)
-    local razor_docname = vim.api.nvim_buf_get_name(razor_bufnr)
 
-    local rvd = documentstore.get_virtual_document(razor_docname, razor.language_kinds.razor)
+    local rvd = documentstore.get_virtual_document(params.textDocument.uri, razor.language_kinds.razor)
     assert(rvd, "Could not find virtual document")
     local client = rvd:get_lsp_client()
     assert(client, "Could not find Razor Client")
 
     local language_query_response = client.request_sync("razor/languageQuery", {
         position = position,
-        uri = vim.uri_from_bufnr(razor_bufnr),
-    }, nil, razor_bufnr)
+        uri = rvd.path,
+    }, nil, rvd.buf)
 
     assert(language_query_response)
 
@@ -38,7 +36,7 @@ return function(params)
     end
 
     local csvd = documentstore.get_virtual_document(
-        razor_docname,
+        params.textDocument.uri,
         razor.language_kinds.csharp,
         language_query_response.result.hostDocumentVersion
     )
@@ -49,11 +47,11 @@ return function(params)
 
     local edits = roslyn_client.request_sync("textDocument/rename", {
         textDocument = {
-            uri = vim.uri_from_bufnr(csvd.buf),
+            uri = csvd.path,
         },
         position = language_query_response.result.position,
         newName = params.newName,
-    }, nil, razor_bufnr)
+    }, nil, rvd.buf)
 
     assert(edits and not edits.err and edits.result, "Rename request failed")
     ---@type lsp.WorkspaceEdit
@@ -70,10 +68,10 @@ return function(params)
         local remapped_edits = {}
         for _, edit in ipairs(changes.edits) do
             local remapped_response = razor_client.request_sync("razor/mapToDocumentRanges", {
-                razorDocumentUri = vim.uri_from_bufnr(razor_bufnr),
+                razorDocumentUri = rvd.path,
                 kind = razor.language_kinds.csharp,
                 projectedRanges = { edit.range },
-            }, nil, razor_bufnr)
+            }, nil, rvd.buf)
 
             if remapped_response and remapped_response.result ~= nil and remapped_response.result.ranges ~= nil then
                 for _, range in ipairs(remapped_response.result.ranges) do

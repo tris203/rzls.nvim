@@ -7,7 +7,7 @@ describe("documentstore", function()
     it("create and retreive docs", function()
         local path = "tests/rzls/fixtures/test2.razor"
         local path_prefix = vim.loop.cwd() .. "/"
-        local full_path = path_prefix .. path
+        local full_path = "file://" .. path_prefix .. path
         vim.cmd.edit({ args = { path } })
         local init_buf = vim.api.nvim_list_bufs()
         documentstore.register_vbufs(init_buf[1])
