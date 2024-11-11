@@ -41,6 +41,11 @@ local M = {}
 ---@field provisionalTextEdit lsp.TextEdit
 ---@field shouldIncludeSnippets boolean
 
+---@class razor.DelegatedCompletionItemResolveParams
+---@field identifier { textDocumentIdentifier: lsp.TextDocumentIdentifier, version: integer }
+---@field completionItem lsp.CompletionItem
+---@field originatingKind razor.LanguageKind
+
 ---@class razor.ProvideDynamicFileParams
 ---@field razorDocument lsp.TextDocumentIdentifier
 

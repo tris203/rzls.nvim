@@ -93,15 +93,38 @@ local function uri_to_path(uri)
 end
 
 ---@param uri string
----@param _version integer
+---@param version integer
 ---@param type razor.LanguageKind
 ---@return rzls.VirtualDocument | nil
-function M.get_virtual_document(uri, _version, type)
+function M.get_virtual_document(uri, version, type)
     local doc = virtual_documents[uri_to_path(uri)]
     if type == razor.language_kinds.razor then
         return doc
     end
-    return doc and doc[type]
+
+    ---@type rzls.VirtualDocument
+    local virtual_document = doc and doc[type]
+
+    if virtual_document == nil then
+        return nil
+    end
+
+    if version == nil or virtual_document.host_document_version == version then
+        return virtual_document
+    end
+
+    local current_coroutine = coroutine.running()
+    local dispose_handler = virtual_document.change_event:on(function()
+        coroutine.resume(current_coroutine)
+    end)
+
+    while virtual_document.host_document_version < version do
+        coroutine.yield()
+    end
+
+    dispose_handler()
+
+    return virtual_document
 end
 
 local pipe_name
