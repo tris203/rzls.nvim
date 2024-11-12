@@ -21,7 +21,7 @@ return function(_err, result, _ctx, _config)
     end
 
     ---@type lsp.SemanticTokens?
-    local tokens = vd:lsp_request(vim.lsp.protocol.Methods.textDocument_semanticTokens_range, {
+    local tokens, err = vd:lsp_request(vim.lsp.protocol.Methods.textDocument_semanticTokens_range, {
         textDocument = {
             uri = vim.uri_from_bufnr(vd.buf),
         },
@@ -29,7 +29,7 @@ return function(_err, result, _ctx, _config)
         correlationId = result.correlationId,
     })
 
-    if not tokens or not tokens.data then
+    if not tokens or err then
         return { tokens = empty_response, hostDocumentSyncVersion = result.requiredHostDocumentVersion }, nil
     end
     return { tokens = tokens.data, hostDocumentSyncVersion = result.requiredHostDocumentVersion }, nil

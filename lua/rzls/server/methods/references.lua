@@ -11,9 +11,11 @@ return function(params)
     local rvd = documentstore.get_virtual_document(params.textDocument.uri, razor.language_kinds.razor)
     assert(rvd, "Could not find virtual document")
 
-    local language_query_response = rvd:language_query(position)
+    local language_query_response, err = rvd:language_query(position)
 
-    assert(language_query_response)
+    if not language_query_response or err then
+        return
+    end
 
     local virtual_document = documentstore.get_virtual_document(
         rvd.path,

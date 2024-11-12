@@ -5,6 +5,8 @@ local razor = require("rzls.razor")
 ---@param projected_position lsp.Position
 ---@param trigger_kind integer
 ---@param trigger_character string|nil
+---@return lsp.CompletionList
+---@return lsp.ResponseError|nil
 local function provide_lsp_completions(virtual_document, projected_position, trigger_kind, trigger_character)
     ---@type lsp.CompletionParams
     local params = {
@@ -20,7 +22,12 @@ local function provide_lsp_completions(virtual_document, projected_position, tri
     local response = virtual_document:lsp_request(vim.lsp.protocol.Methods.textDocument_completion, params)
 
     if not response then
-        return nil
+        ---@type lsp.CompletionList
+        local empty_response = {
+            isIncomplete = true,
+            items = {},
+        }
+        return empty_response
     end
 
     ---@type lsp.CompletionList | lsp.CompletionItem[] | nil

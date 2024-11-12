@@ -20,9 +20,11 @@ return function(params)
     local rvd = documentstore.get_virtual_document(params.textDocument.uri, razor.language_kinds.razor)
     assert(rvd, "Could not find virtual document")
 
-    local language_query_response = rvd:language_query(position)
+    local language_query_response, err = rvd:language_query(position)
 
-    assert(language_query_response)
+    if not language_query_response or err then
+        return nil
+    end
 
     if language_query_response.kind ~= razor.language_kinds.csharp then
         --- vscode only supports c# renames
@@ -38,7 +40,7 @@ return function(params)
     assert(csvd, "Could not find virtual document")
 
     ---@type lsp.WorkspaceEdit?
-    local edits = csvd:lsp_request(vim.lsp.protocol.Methods.textDocument_rename, {
+    local edits, editerr = csvd:lsp_request(vim.lsp.protocol.Methods.textDocument_rename, {
         textDocument = {
             uri = csvd.path,
         },
@@ -46,8 +48,9 @@ return function(params)
         newName = params.newName,
     })
 
-    assert(edits, "Rename request failed")
-    ---@type lsp.WorkspaceEdit
+    if not edits or editerr then
+        return nil
+    end
 
     ---@type lsp.WorkspaceEdit
     local mapped_workspaceedits = {}

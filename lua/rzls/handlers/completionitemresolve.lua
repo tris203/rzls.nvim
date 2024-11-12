@@ -28,8 +28,6 @@ return function(err, result, _ctx, _config)
             virtual_document:ensure_content()
         end
 
-        assert(response, "Virtual LSP didn't return any results for completionItem/resolve call")
-
         if not response then
             return result.completionItem
         end
