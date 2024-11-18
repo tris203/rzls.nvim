@@ -37,7 +37,9 @@ local defaultConfg = {
 
 ---@type lsp.ClientCapabilities
 local extraCapabilities = {
-    colorProvider = true,
+    textDocument = {
+        colorProvider = {},
+    },
 }
 
 ---@param config rzls.Config
