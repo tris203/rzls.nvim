@@ -4,17 +4,30 @@ local Log = require("rzls.log")
 
 local empty_response = {}
 
----@param _err lsp.ResponseError
----@param result lsp.DocumentDiagnosticParams
+---@class rzls.provideHtmlDocumentColorParams
+---@field textDocument lsp.TextDocumentIdentifier
+---@field _razor_hostDocumentVersion integer
+
+---@param err lsp.ResponseError
+---@param result rzls.provideHtmlDocumentColorParams
 ---@param _ctx lsp.HandlerContext
 ---@param _config table
-return function(_err, result, _ctx, _config)
-    assert(not _err, vim.inspect(_err))
-    local virtual_document =
-        documentstore.get_virtual_document(result.textDocument.uri, razor.language_kinds.html, "any")
-    assert(virtual_document, "html document was not found")
+return function(err, result, _ctx, _config)
+    assert(not err, vim.inspect(err))
+    local virtual_document = documentstore.get_virtual_document(
+        result.textDocument.uri,
+        razor.language_kinds.html,
+        result._razor_hostDocumentVersion
+    )
+    if not virtual_document then
+        Log.rzls = "razor/provideHtmlDocumentColor: virtual document not found"
+        return empty_response
+    end
     local virtual_client = virtual_document:get_lsp_client()
-    assert(virtual_client, "Could not find LSP client for virtual document")
+    if not virtual_client then
+        Log.rzls = "razor/provideHtmlDocumentColor: HTML LSP client not attached to virtual document"
+        return empty_response
+    end
     --@type lsp.DocumentColorParams
     local document_color_params = vim.tbl_deep_extend("force", result, {
         textDocument = {
