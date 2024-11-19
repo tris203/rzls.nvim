@@ -35,11 +35,6 @@ local defaultConfg = {
     capabilities = vim.lsp.protocol.make_client_capabilities(),
 }
 
----@type lsp.ClientCapabilities
-local extraCapabilities = {
-    colorProvider = true,
-}
-
 ---@param config rzls.Config
 function M.setup(config)
     Log.rzlsnvim = "Ran Setup"
@@ -117,7 +112,7 @@ function M.setup(config)
                         return req(method, params, handler, tbufnr)
                     end
                 end,
-                capabilities = vim.tbl_deep_extend("force", rzlsconfig.capabilities, extraCapabilities),
+                capabilities = rzlsconfig.capabilities,
                 settings = {
                     html = vim.empty_dict(),
                     razor = vim.empty_dict(),
