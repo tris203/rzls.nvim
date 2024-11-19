@@ -16,35 +16,23 @@ return function(err, result, _ctx, _config)
         )
         assert(virtual_document, "No virtual document found")
 
-        local virtual_client = virtual_document:get_lsp_client()
-        assert(virtual_client, "No virtual client found")
-
         if virtual_document.provisional_dot_position and virtual_document:ensure_resolve_provisional_dot() then
             virtual_document:ensure_content()
         end
 
-        local response = virtual_client.request_sync(
-            vim.lsp.protocol.Methods.completionItem_resolve,
-            result.completionItem,
-            nil,
-            virtual_document.buf
-        )
+        ---@type lsp.CompletionItem
+        local response =
+            virtual_document:lsp_request(vim.lsp.protocol.Methods.completionItem_resolve, result.completionItem)
 
         if virtual_document.provisional_dot_position and virtual_document:remove_resolve_provisional_dot() then
             virtual_document:ensure_content()
         end
 
-        assert(response, "Virtual LSP didn't return any results for completionItem/resolve call")
-
-        if response.err ~= nil then
-            return nil, response.err
-        end
-
-        if response.result == nil then
+        if not response then
             return result.completionItem
         end
 
-        return response.result
+        return response
     end
 
     return result.completionItem

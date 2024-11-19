@@ -23,30 +23,20 @@ return function(err, result, _ctx, _config)
         Log.rzls = "razor/provideHtmlDocumentColor: virtual document not found"
         return empty_response
     end
-    local virtual_client = virtual_document:get_lsp_client()
-    if not virtual_client then
-        Log.rzls = "razor/provideHtmlDocumentColor: HTML LSP client not attached to virtual document"
-        return empty_response
-    end
-    --@type lsp.DocumentColorParams
-    local document_color_params = vim.tbl_deep_extend("force", result, {
+
+    ---@type lsp.DocumentColorParams
+    local document_color_params = {
         textDocument = {
             uri = vim.uri_from_bufnr(virtual_document.buf),
         },
-    })
-    local document_color_response = virtual_client.request_sync(
-        vim.lsp.protocol.Methods.textDocument_documentColor,
-        document_color_params,
-        nil,
-        virtual_document.buf
-    )
-    if not document_color_response then
-        return empty_response
+    }
+
+    local document_color_response, request_err =
+        virtual_document:lsp_request(vim.lsp.protocol.Methods.textDocument_documentColor, document_color_params)
+
+    if request_err then
+        return nil, request_err
     end
 
-    if document_color_response.err then
-        return nil, document_color_response.err
-    end
-
-    return document_color_response.result
+    return document_color_response
 end

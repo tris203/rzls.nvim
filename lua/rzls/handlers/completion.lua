@@ -5,10 +5,9 @@ local razor = require("rzls.razor")
 ---@param projected_position lsp.Position
 ---@param trigger_kind integer
 ---@param trigger_character string|nil
+---@return lsp.CompletionList
+---@return lsp.ResponseError|nil
 local function provide_lsp_completions(virtual_document, projected_position, trigger_kind, trigger_character)
-    local virtual_client = virtual_document:get_lsp_client()
-    assert(virtual_client, "No virtual client found")
-
     ---@type lsp.CompletionParams
     local params = {
         context = {
@@ -20,23 +19,19 @@ local function provide_lsp_completions(virtual_document, projected_position, tri
             uri = vim.uri_from_bufnr(virtual_document.buf),
         },
     }
-    local response =
-        virtual_client.request_sync(vim.lsp.protocol.Methods.textDocument_completion, params, nil, virtual_document.buf)
+    local response = virtual_document:lsp_request(vim.lsp.protocol.Methods.textDocument_completion, params)
 
-    if response == nil then
-        return nil,
-            vim.lsp.rpc_response_error(
-                vim.lsp.client_errors["INVALID_SERVER_MESSAGE"],
-                "Virtual LSP client returned no response"
-            )
-    end
-
-    if response.err ~= nil then
-        return nil, response.err
+    if not response then
+        ---@type lsp.CompletionList
+        local empty_response = {
+            isIncomplete = true,
+            items = {},
+        }
+        return empty_response
     end
 
     ---@type lsp.CompletionList | lsp.CompletionItem[] | nil
-    local completion_items = response.result
+    local completion_items = response
 
     if vim.islist(completion_items) then
         return {

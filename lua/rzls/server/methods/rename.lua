@@ -19,17 +19,14 @@ return function(params)
 
     local rvd = documentstore.get_virtual_document(params.textDocument.uri, razor.language_kinds.razor)
     assert(rvd, "Could not find virtual document")
-    local client = rvd:get_lsp_client()
-    assert(client, "Could not find Razor Client")
 
-    local language_query_response = client.request_sync("razor/languageQuery", {
-        position = position,
-        uri = rvd.path,
-    }, nil, rvd.buf)
+    local language_query_response, err = rvd:language_query(position)
 
-    assert(language_query_response)
+    if not language_query_response or err then
+        return nil
+    end
 
-    if language_query_response.result.kind ~= razor.language_kinds.csharp then
+    if language_query_response.kind ~= razor.language_kinds.csharp then
         --- vscode only supports c# renames
         vim.notify("Rename is only supported for C#.", vim.log.levels.ERROR, { title = "rzls.nvim" })
         return nil
@@ -38,48 +35,35 @@ return function(params)
     local csvd = documentstore.get_virtual_document(
         params.textDocument.uri,
         razor.language_kinds.csharp,
-        language_query_response.result.hostDocumentVersion
+        language_query_response.hostDocumentVersion
     )
     assert(csvd, "Could not find virtual document")
 
-    local roslyn_client = csvd:get_lsp_client()
-    assert(roslyn_client, "Could not find Roslyn Client")
-
-    local edits = roslyn_client.request_sync("textDocument/rename", {
+    ---@type lsp.WorkspaceEdit?
+    local edits, editerr = csvd:lsp_request(vim.lsp.protocol.Methods.textDocument_rename, {
         textDocument = {
             uri = csvd.path,
         },
-        position = language_query_response.result.position,
+        position = language_query_response.position,
         newName = params.newName,
-    }, nil, rvd.buf)
+    })
 
-    assert(edits and not edits.err and edits.result, "Rename request failed")
-    ---@type lsp.WorkspaceEdit
-    local result = edits.result
-
-    local razor_client = rvd:get_lsp_client()
-    assert(razor_client, "Could not find Razor Client")
+    if not edits or editerr then
+        return nil
+    end
 
     ---@type lsp.WorkspaceEdit
     local mapped_workspaceedits = {}
-    for _, changes in ipairs(result.documentChanges) do
+    for _, changes in ipairs(edits.documentChanges) do
         local csharp_uri = changes.textDocument.uri
         ---@type lsp.TextEdit[]
         local remapped_edits = {}
         for _, edit in ipairs(changes.edits) do
-            local remapped_response = razor_client.request_sync("razor/mapToDocumentRanges", {
-                razorDocumentUri = rvd.path,
-                kind = razor.language_kinds.csharp,
-                projectedRanges = { edit.range },
-            }, nil, rvd.buf)
-
-            if remapped_response and remapped_response.result ~= nil and remapped_response.result.ranges ~= nil then
-                for _, range in ipairs(remapped_response.result.ranges) do
+            local remapped_response = rvd:map_to_document_ranges(razor.language_kinds.csharp, { edit.range })
+            if remapped_response ~= nil and remapped_response.ranges ~= nil then
+                for _, range in ipairs(remapped_response.ranges) do
                     if range.start.line > 0 then
-                        table.insert(
-                            remapped_edits,
-                            { newText = edit.newText, range = remapped_response.result.ranges[1] }
-                        )
+                        table.insert(remapped_edits, { newText = edit.newText, range = remapped_response.ranges[1] })
                     end
                 end
             end

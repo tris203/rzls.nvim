@@ -24,7 +24,10 @@ local requests = {
     ["textDocument/signatureHelp"] = require("rzls.server.methods.signaturehelp"),
 }
 
-local noops = { ["initialized"] = true, ["textDocument/didSave"] = true }
+local noops = {
+    ["initialized"] = true,
+    ["textDocument/didSave"] = true,
+}
 
 function M.server()
     local srv = {}

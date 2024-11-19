@@ -72,30 +72,6 @@ M.lsp_names = {
     [M.language_kinds.razor] = "rzls",
 }
 
----@param lsp vim.lsp.Client
----@param bufnr integer
----@param position lsp.Position
----@return { err: lsp.ResponseError|nil, result: razor.LanguageQueryResponse }|nil, string|nil
-function M.language_query_sync(lsp, bufnr, position)
-    return lsp.request_sync("razor/languageQuery", {
-        position = position,
-        uri = vim.uri_from_bufnr(bufnr),
-    }, nil, bufnr)
-end
-
----@param lsp vim.lsp.Client
----@param bufnr integer
----@param language_kind razor.LanguageKind
----@param ranges lsp.Range[]
----@param cb fun(err: lsp.ResponseError, response: razor.MapToDocumentRangesResponse)
-function M.map_to_document_ranges(lsp, bufnr, language_kind, ranges, cb)
-    lsp.request("razor/mapToDocumentRanges", {
-        razorDocumentUri = vim.uri_from_bufnr(bufnr),
-        kind = language_kind,
-        projectedRanges = ranges,
-    }, cb)
-end
-
 ---@type table<string, vim.api.keyset.highlight>
 --TODO: Extend this to cover all razor highlights
 -- https://github.com/dotnet/vscode-csharp/blob/802be7399e947ab82f2a69780d43a57c1d5be6aa/package.json#L4761

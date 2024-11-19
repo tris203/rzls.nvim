@@ -1,6 +1,7 @@
 local razor = require("rzls.razor")
 local utils = require("rzls.utils")
 local EventEmitter = require("rzls.eventemitter")
+local Log = require("rzls.log")
 
 ---@class rzls.VirtualDocument
 ---@field buf number
@@ -168,6 +169,87 @@ function VirtualDocument:index_of_position(position)
     end
 
     return -1
+end
+
+---@param position lsp.Position
+---@return razor.LanguageQueryResponse|nil    # result on success, nil on failure.
+---@return nil|lsp.ResponseError # nil on success, error message on failure.
+function VirtualDocument:language_query(position)
+    assert(self.kind == razor.language_kinds.razor, "Can only map to document ranges for razor documents")
+    local lsp = self:get_lsp_client()
+    if not lsp then
+        Log.rzlsnvim = "[Language Query]LSP client not found for " .. self.path
+        return nil, vim.lsp.rpc_response_error(vim.lsp.protocol.ErrorCodes.InvalidRequest, "LSP client not found")
+    end
+    local response = lsp.request_sync("razor/languageQuery", {
+        position = position,
+        uri = vim.uri_from_bufnr(self.buf),
+    }, nil, self.buf)
+    if not response or response.err then
+        Log.rzlsnvim = "Language Query Request failed: " .. vim.inspect(response and response.err)
+        return nil,
+            response and response.err or vim.lsp.rpc_response_error(
+                vim.lsp.protocol.ErrorCodes.InvalidRequest,
+                "Language Query request failed"
+            )
+    end
+    return response.result
+end
+
+---@param language_kind razor.LanguageKind
+---@param ranges lsp.Range[]
+---@return razor.MapToDocumentRangesResponse|nil    # result on success, nil on failure.
+---@return nil|lsp.ResponseError # nil on success, error message on failure.
+function VirtualDocument:map_to_document_ranges(language_kind, ranges)
+    assert(self.kind == razor.language_kinds.razor, "Can only map to document ranges for razor documents")
+    local lsp = self:get_lsp_client()
+    if not lsp then
+        Log.rzlsnvim = "[MapRange]LSP client not found for " .. self.path
+        return nil, vim.lsp.rpc_response_error(vim.lsp.protocol.ErrorCodes.InvalidRequest, "LSP client not found")
+    end
+    local response = lsp.request_sync("razor/mapToDocumentRanges", {
+        razorDocumentUri = vim.uri_from_bufnr(self.buf),
+        kind = language_kind,
+        projectedRanges = ranges,
+    }, nil, self.buf)
+    if not response or response.err then
+        Log.rzlsnvim = "Map Document Range Request failed for "
+            .. self.path
+            .. ": "
+            .. vim.inspect(response and response.err)
+        return nil,
+            response and response.err or vim.lsp.rpc_response_error(
+                vim.lsp.protocol.ErrorCodes.InvalidRequest,
+                "Map Document Range request failed"
+            )
+    end
+    return response.result
+end
+
+--- issues an LSP request to the virtual document.
+--- Please use by passing a method from `vim.lsp.protocl.Methods`
+--- and type the expected return value as optional.
+---@param method string
+---@param params table
+---@param buf number?
+---@return any|nil    # result on success, nil on failure.
+---@return nil|lsp.ResponseError # nil on success, error message on failure.
+function VirtualDocument:lsp_request(method, params, buf)
+    local lsp = self:get_lsp_client()
+    if not lsp then
+        Log.rzlsnvim = "[" .. method .. "]LSP client not found for " .. self.path
+        return nil, vim.lsp.rpc_response_error(vim.lsp.protocol.ErrorCodes.InvalidRequest, "LSP client not found")
+    end
+    local result = lsp.request_sync(method, params, nil, buf or self.buf)
+    if not result or result.err then
+        Log.rzlsnvim = "LSP request failed for " .. self.path .. ": " .. vim.inspect(result and result.err)
+        return nil,
+            result and result.err or vim.lsp.rpc_response_error(
+                vim.lsp.protocol.ErrorCodes.InvalidRequest,
+                "LSP request failed"
+            )
+    end
+    return result.result, nil
 end
 
 return VirtualDocument
