@@ -50,7 +50,7 @@ return {
     ["razor/htmlOnTypeFormatting"] = not_implemented,
     ["razor/simplifyMethod"] = not_implemented,
     ["razor/formatNewFile"] = not_implemented,
-    ["razor/inlayHint"] = not_implemented,
+    ["razor/inlayHint"] = require("rzls.handlers.inlayhint"),
     ["razor/inlayHintResolve"] = not_implemented,
 
     -- VS Windows only at the moment, but could/should be migrated

@@ -52,6 +52,11 @@ local M = {}
 ---@class razor.ProvideDynamicFileResponse
 ---@field csharpDocument? lsp.TextDocumentIdentifier
 
+---@class razor.DelegatedInlayHintParams
+---@field identifier { textDocumentIdentifier: lsp.TextDocumentIdentifier, version: integer }
+---@field projectedKind razor.LanguageKind
+---@field projectedRange lsp.Range
+
 ---@enum razor.LanguageKind
 M.language_kinds = {
     csharp = 1,
