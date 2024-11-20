@@ -57,6 +57,11 @@ local M = {}
 ---@field projectedKind razor.LanguageKind
 ---@field projectedRange lsp.Range
 
+---@class razor.DelegatedInlayHintResolveParams
+---@field identifier { textDocumentIdentifier: lsp.TextDocumentIdentifier, version: integer }
+---@field inlayHint lsp.InlayHint
+---@field projectedKind razor.LanguageKind
+
 ---@enum razor.LanguageKind
 M.language_kinds = {
     csharp = 1,
