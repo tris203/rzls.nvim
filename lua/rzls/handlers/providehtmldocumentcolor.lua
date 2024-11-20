@@ -1,6 +1,5 @@
 local documentstore = require("rzls.documentstore")
 local razor = require("rzls.razor")
-local Log = require("rzls.log")
 
 local empty_response = {}
 
@@ -8,19 +7,17 @@ local empty_response = {}
 ---@field textDocument lsp.TextDocumentIdentifier
 ---@field _razor_hostDocumentVersion integer
 
----@param err lsp.ResponseError
+---@param _err lsp.ResponseError
 ---@param result rzls.provideHtmlDocumentColorParams
 ---@param _ctx lsp.HandlerContext
 ---@param _config table
-return function(err, result, _ctx, _config)
-    assert(not err, vim.inspect(err))
+return function(_err, result, _ctx, _config)
     local virtual_document = documentstore.get_virtual_document(
         result.textDocument.uri,
         razor.language_kinds.html,
         result._razor_hostDocumentVersion
     )
     if not virtual_document then
-        Log.rzls = "razor/provideHtmlDocumentColor: virtual document not found"
         return empty_response
     end
 

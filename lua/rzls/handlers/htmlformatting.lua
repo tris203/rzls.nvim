@@ -2,9 +2,11 @@ local documentstore = require("rzls.documentstore")
 local format = require("rzls.utils.format")
 local razor = require("rzls.razor")
 
+local empty_response = {}
+
 ---@class rzls.htmlFormattingParams
 ---@field textDocument lsp.TextDocumentIdentifier
----@field _razor_hostDocumentVersion integer
+---@field hostDocumentVersion integer
 ---@field options lsp.FormattingOptions
 
 ---@param err lsp.ResponseError
@@ -22,7 +24,9 @@ return function(err, result, _ctx, _config)
         razor.language_kinds.html,
         result.hostDocumentVersion
     )
-    assert(virtual_document, "Could not find html virtual document")
+    if not virtual_document then
+        return empty_response, nil
+    end
 
     local lines = virtual_document:lines()
     local line_count = #lines
@@ -46,7 +50,7 @@ return function(err, result, _ctx, _config)
         })
 
     if not range_formatting_response then
-        return {}
+        return empty_response
     end
 
     local edits = {}

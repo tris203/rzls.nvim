@@ -100,6 +100,7 @@ function M.get_virtual_document(uri, type, version)
     local virtual_document = doc and doc[type]
 
     if virtual_document == nil then
+        Log.rzlsnvim = string.format('Virtual document not found. Uri: "%s". LanguageKind: %d', uri, type)
         return nil
     end
 

@@ -8,7 +8,9 @@ return function(params)
     local position = params.position
 
     local rvd = documentstore.get_virtual_document(params.textDocument.uri, razor.language_kinds.razor)
-    assert(rvd, "Could not find virtual document")
+    if not rvd then
+        return
+    end
 
     local language_query_response, err = rvd:language_query(position)
 
@@ -21,7 +23,9 @@ return function(params)
         language_query_response.kind,
         language_query_response.hostDocumentVersion
     )
-    assert(virtual_document)
+    if not virtual_document then
+        return
+    end
 
     ---@type lsp.Hover?
     local hover_result = virtual_document:lsp_request(vim.lsp.protocol.Methods.textDocument_hover, {

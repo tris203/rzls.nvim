@@ -1,20 +1,20 @@
 local documentstore = require("rzls.documentstore")
 local razor = require("rzls.razor")
 
----@param err lsp.ResponseError
+---@param _err lsp.ResponseError
 ---@param result razor.DelegatedCompletionItemResolveParams
 ---@param _ctx lsp.HandlerContext
 ---@param _config table
-return function(err, result, _ctx, _config)
-    assert(not err, err)
-
+return function(_err, result, _ctx, _config)
     if result.originatingKind == razor.language_kinds.csharp and result.completionItem.data.TextDocument ~= nil then
         local virtual_document = documentstore.get_virtual_document(
             result.identifier.textDocumentIdentifier.uri,
             result.originatingKind,
             result.identifier.version
         )
-        assert(virtual_document, "No virtual document found")
+        if not virtual_document then
+            return result.completionItem
+        end
 
         if virtual_document.provisional_dot_position and virtual_document:ensure_resolve_provisional_dot() then
             virtual_document:ensure_content()

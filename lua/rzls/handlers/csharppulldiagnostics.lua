@@ -10,7 +10,9 @@ local empty_response = {}
 return function(_err, result, _ctx, _config)
     local virtual_document =
         documentstore.get_virtual_document(result.textDocument.uri, razor.language_kinds.csharp, "any")
-    assert(virtual_document, "csharp document was not found")
+    if not virtual_document then
+        return empty_response
+    end
 
     ---@type lsp.DocumentDiagnosticParams
     local diagnostic_params = vim.tbl_deep_extend("force", result, {

@@ -29,16 +29,14 @@ return {
     ["razor/mapCode"] = not_implemented,
 
     -- VS Windows and VS Code
-    ---@param err lsp.ResponseError
+    ---@param _err lsp.ResponseError
     ---@param result VBufUpdate
-    ["razor/updateCSharpBuffer"] = function(err, result)
-        assert(not err, vim.inspect(err))
+    ["razor/updateCSharpBuffer"] = function(_err, result)
         documentstore.update_vbuf(result, razor.language_kinds.csharp)
     end,
-    ---@param err lsp.ResponseError
+    ---@param _err lsp.ResponseError
     ---@param result VBufUpdate
-    ["razor/updateHtmlBuffer"] = function(err, result)
-        assert(not err, vim.inspect(err))
+    ["razor/updateHtmlBuffer"] = function(_err, result)
         documentstore.update_vbuf(result, razor.language_kinds.html)
     end,
     ["razor/provideCodeActions"] = not_implemented,
