@@ -84,6 +84,21 @@ function M.register_vbufs(source_buf)
     return M.register_vbufs_by_path(currentFile)
 end
 
+---Refreshes parent views of the given virtual document
+---@param result VBufUpdate
+function M.refresh_parent_views(result)
+    local uri = vim.uri_from_fname(result.hostDocumentFilePath)
+    ---@type rzls.VirtualDocument?
+    local rvd = virtual_documents[uri]
+    if not rvd or rvd.kind ~= razor.language_kinds.razor then
+        assert(false, "Not a razor document")
+        return
+    end
+    if vim.lsp.inlay_hint.is_enabled({ bufnr = rvd.buf }) then
+        vim.lsp.inlay_hint.enable(true, { bufnr = rvd.buf })
+    end
+end
+
 ---@async
 ---@param uri string
 ---@param type razor.LanguageKind

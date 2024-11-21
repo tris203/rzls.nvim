@@ -33,6 +33,7 @@ return {
     ---@param result VBufUpdate
     ["razor/updateCSharpBuffer"] = function(_err, result)
         documentstore.update_vbuf(result, razor.language_kinds.csharp)
+        documentstore.refresh_parent_views(result)
     end,
     ---@param _err lsp.ResponseError
     ---@param result VBufUpdate
