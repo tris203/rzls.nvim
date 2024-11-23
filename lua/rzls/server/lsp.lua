@@ -4,11 +4,13 @@ local M = {}
 local requests = {
     ["initialize"] = function(_)
         return {
+            --- @type lsp.ServerCapabilities
             capabilities = {
                 hoverProvider = true,
                 definitionProvider = true,
                 referencesProvider = true,
                 renameProvider = { prepareProvider = false },
+                documentHighlightProvider = true,
                 signatureHelpProvider = {
                     triggerCharacters = { "(", ",", "<" },
                     retriggerCharacters = { ">", ")" },
@@ -22,6 +24,7 @@ local requests = {
     ["textDocument/references"] = require("rzls.server.methods.references"),
     ["textDocument/rename"] = require("rzls.server.methods.rename"),
     ["textDocument/signatureHelp"] = require("rzls.server.methods.signaturehelp"),
+    ["textDocument/documentHighlight"] = require("rzls.server.methods.documenthighlight"),
 }
 
 local noops = {
