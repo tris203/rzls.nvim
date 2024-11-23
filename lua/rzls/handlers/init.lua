@@ -66,10 +66,10 @@ return {
 
     -- Called to get C# diagnostics from Roslyn when publishing diagnostics for VS Code
     ["razor/csharpPullDiagnostics"] = require("rzls.handlers.csharppulldiagnostics"),
-    ["textDocument/colorPresentation"] = not_supported,
     ["razor/completion"] = require("rzls.handlers.completion"),
     ["razor/completionItem/resolve"] = require("rzls.handlers.completionitemresolve"),
-    ["window/logMessage"] = function(_, result)
+    [vim.lsp.protocol.Methods.textDocument_colorPresentation] = not_supported,
+    [vim.lsp.protocol.Methods.window_logMessage] = function(_, result)
         Log.rzls = result.message
         return vim.lsp.handlers[vim.lsp.protocol.Methods.window_logMessage]
     end,
