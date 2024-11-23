@@ -89,21 +89,24 @@ local function provide_csharp_completions(
     return lsp_response, err
 end
 
----@param err lsp.ResponseError
+---@param _err lsp.ResponseError
 ---@param result razor.DelegatedCompletionParams
 ---@param _ctx lsp.HandlerContext
 ---@param _config table
 ---@return lsp.CompletionList|nil
 ---@return lsp.ResponseError|nil
-return function(err, result, _ctx, _config)
-    assert(not err, err)
-
+return function(_err, result, _ctx, _config)
     local virtual_document = documentstore.get_virtual_document(
         result.identifier.textDocumentIdentifier.uri,
         result.projectedKind,
         result.identifier.version
     )
-    assert(virtual_document, "No virtual document found")
+    if not virtual_document then
+        return {
+            items = {},
+            isIncomplete = false,
+        }
+    end
 
     if result.identifier.version ~= virtual_document.host_document_version then
         return {
