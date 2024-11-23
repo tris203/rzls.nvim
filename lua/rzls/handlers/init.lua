@@ -40,8 +40,8 @@ return {
     ["razor/updateHtmlBuffer"] = function(_err, result)
         documentstore.update_vbuf(result, razor.language_kinds.html)
     end,
-    ["razor/provideCodeActions"] = not_implemented,
-    ["razor/resolveCodeActions"] = not_implemented,
+    ["razor/provideCodeActions"] = require("rzls.handlers.providecodeactions"),
+    ["razor/resolveCodeActions"] = require("rzls.handlers.resolvecodeactions"),
     ["razor/provideHtmlColorPresentation"] = not_supported,
     ["razor/provideHtmlDocumentColor"] = require("rzls.handlers.providehtmldocumentcolor"),
     ["razor/provideSemanticTokensRange"] = require("rzls.handlers.providesemantictokensrange"),
@@ -68,6 +68,8 @@ return {
     ["razor/csharpPullDiagnostics"] = require("rzls.handlers.csharppulldiagnostics"),
     ["razor/completion"] = require("rzls.handlers.completion"),
     ["razor/completionItem/resolve"] = require("rzls.handlers.completionitemresolve"),
+
+    -- Standard LSP methods
     [vim.lsp.protocol.Methods.textDocument_colorPresentation] = not_supported,
     [vim.lsp.protocol.Methods.window_logMessage] = function(_, result)
         Log.rzls = result.message
