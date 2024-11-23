@@ -22,8 +22,8 @@ auto-completion, go-to-definition, and more all from within neovim 💻🔧
 | Rename Symbol         | ✅          |
 | Signature Help        | ✅          |
 | Completions           | ✅          |
+| Inlay Hints           | ✅          |
 | Code Actions          | ❌          |
-| Inlay Hints           | ❌          |
 | Folding               | ❌          |
 | CodeLens              | ❌          |
 | Format New Files      | ❌          |
@@ -110,6 +110,13 @@ require('roslyn').setup {
 }
 ```
 
+### Inlay Hints
+
+Inlay hints are provided in razor documents via the roslyn lsp.
+
+To enable, you must enable inlay hinting in nvim config `:h vim.lsp.inlay_hint.enable()`
+and also configure `csharp|inlay_hint_*` options in [roslyn.nvim](https://github.com/seblj/roslyn.nvim)
+
 ## Additional Configuration
 
 ### Telescope
@@ -143,6 +150,7 @@ require('trouble').setup {
       },
 }
 ```
+
 
 ## Known Issues
 

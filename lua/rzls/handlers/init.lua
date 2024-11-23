@@ -33,6 +33,7 @@ return {
     ---@param result VBufUpdate
     ["razor/updateCSharpBuffer"] = function(_err, result)
         documentstore.update_vbuf(result, razor.language_kinds.csharp)
+        documentstore.refresh_parent_views(result)
     end,
     ---@param _err lsp.ResponseError
     ---@param result VBufUpdate
@@ -50,8 +51,8 @@ return {
     ["razor/htmlOnTypeFormatting"] = not_implemented,
     ["razor/simplifyMethod"] = not_implemented,
     ["razor/formatNewFile"] = not_implemented,
-    ["razor/inlayHint"] = not_implemented,
-    ["razor/inlayHintResolve"] = not_implemented,
+    ["razor/inlayHint"] = require("rzls.handlers.inlayhint"),
+    ["razor/inlayHintResolve"] = require("rzls.handlers.inlayhintresolve"),
 
     -- VS Windows only at the moment, but could/should be migrated
     ["razor/documentSymbol"] = not_implemented,
