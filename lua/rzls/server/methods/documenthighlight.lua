@@ -5,7 +5,10 @@ local razor = require("rzls.razor")
 ---@return lsp.DocumentHighlight[] | nil
 return function(params)
     local rvd = documentstore.get_virtual_document(params.textDocument.uri, razor.language_kinds.razor)
-    assert(rvd, "razor document already be loaded")
+
+    if not rvd then
+        return
+    end
 
     local language_query_response = rvd:language_query(params.position)
 
