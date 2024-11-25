@@ -172,7 +172,9 @@ function M.watch_new_files(path)
         Log.rzlsnvim = "Filesystem changed - " .. filename
         if vim.fn.fnamemodify(filename, ":e") == "razor" then
             Log.rzlsnvim = "Filesystem changed  " .. filename .. " updating documentstore"
-            documentstore.register_vbufs_by_path(filename)
+            vim.schedule(function()
+                documentstore.register_vbufs_by_path(filename)
+            end)
         end
     end)
 end
