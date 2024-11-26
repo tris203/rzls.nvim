@@ -90,9 +90,9 @@ function M.setup(config)
                         client._rzls_hacked_capabilities = true
                     end
                     local req = client.request
-                    client.request = function(method, params, handler, tbufnr)
+                    client.request = function(lspclient, method, params, handler, tbufnr)
                         if method == vim.lsp.protocol.Methods.textDocument_semanticTokens_full then
-                            return req(vim.lsp.protocol.Methods.textDocument_semanticTokens_range, {
+                            return req(lspclient, vim.lsp.protocol.Methods.textDocument_semanticTokens_range, {
                                 textDocument = params.textDocument,
                                 range = {
                                     start = {
@@ -109,7 +109,7 @@ function M.setup(config)
                                 },
                             }, handler, tbufnr)
                         end
-                        return req(method, params, handler, tbufnr)
+                        return req(lspclient, method, params, handler, tbufnr)
                     end
                 end,
                 capabilities = rzlsconfig.capabilities,
