@@ -3,6 +3,15 @@ local M = {}
 
 local requests = {
     [vim.lsp.protocol.Methods.initialize] = function(_)
+        local rzls_client
+        vim.wait(10000, function()
+            rzls_client = vim.lsp.get_clients({ name = "rzls" })[1]
+            if rzls_client then
+                return true
+            end
+            return false
+        end, 100)
+
         return {
             --- @type lsp.ServerCapabilities
             capabilities = {
@@ -15,6 +24,10 @@ local requests = {
                     triggerCharacters = { "(", ",", "<" },
                     retriggerCharacters = { ">", ")" },
                 },
+                semanticTokensProvider = {
+                    full = true,
+                    legend = rzls_client.server_capabilities.semanticTokensProvider.legend,
+                },
             },
         }
     end,
@@ -25,6 +38,7 @@ local requests = {
     [vim.lsp.protocol.Methods.textDocument_rename] = require("rzls.server.methods.rename"),
     [vim.lsp.protocol.Methods.textDocument_signatureHelp] = require("rzls.server.methods.signaturehelp"),
     [vim.lsp.protocol.Methods.textDocument_documentHighlight] = require("rzls.server.methods.documenthighlight"),
+    [vim.lsp.protocol.Methods.textDocument_semanticTokens_full] = require("rzls.server.methods.semantictokens_full"),
 }
 
 local noops = {
