@@ -1,16 +1,22 @@
 local Log = require("rzls.log")
+local r = require("rzls.razor")
 local M = {}
 
 local requests = {
     [vim.lsp.protocol.Methods.initialize] = function(_)
         local rzls_client
         vim.wait(10000, function()
-            rzls_client = vim.lsp.get_clients({ name = "rzls" })[1]
+            rzls_client = vim.lsp.get_clients({ name = r.lsp_names[r.language_kinds.razor] })[1]
             if rzls_client then
                 return true
             end
             return false
         end, 100)
+
+        if not rzls_client then
+            Log.aftershave = "Failed to get rzls client"
+            return nil
+        end
 
         return {
             --- @type lsp.ServerCapabilities

@@ -22,7 +22,7 @@ local function roslyn_razor_provideDynamicFileHandler(_err, result, _ctx, _confi
     end
 
     -- TODO: ideally we could get the client by the razor document, but the client might no have been attached yet
-    local razor_client = vim.lsp.get_clients({ name = "rzls" })[1]
+    local razor_client = vim.lsp.get_clients({ name = razor.lsp_names[razor.language_kinds.razor] })[1]
     assert(razor_client, "Could not find razor client")
 
     return {
