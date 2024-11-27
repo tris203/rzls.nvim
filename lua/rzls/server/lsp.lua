@@ -15,6 +15,11 @@ local requests = {
                     triggerCharacters = { "(", ",", "<" },
                     retriggerCharacters = { ">", ")" },
                 },
+                codeActionProvider = {
+                    codeActionKinds = { "refactor.extract", "quickfix", "refactor" },
+                    resolveProvider = true,
+                    workDoneProgress = false,
+                },
             },
         }
     end,
@@ -25,6 +30,8 @@ local requests = {
     [vim.lsp.protocol.Methods.textDocument_rename] = require("rzls.server.methods.rename"),
     [vim.lsp.protocol.Methods.textDocument_signatureHelp] = require("rzls.server.methods.signaturehelp"),
     [vim.lsp.protocol.Methods.textDocument_documentHighlight] = require("rzls.server.methods.documenthighlight"),
+    [vim.lsp.protocol.Methods.textDocument_codeAction] = require("rzls.server.methods.codeaction"),
+    [vim.lsp.protocol.Methods.codeAction_resolve] = require("rzls.server.methods.codeaction_resolve"),
 }
 
 local noops = {

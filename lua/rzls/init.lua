@@ -84,6 +84,7 @@ function M.setup(config)
                             semanticTokensProvider = {
                                 full = true,
                             },
+                            codeActionProvider = false,
                             renameProvider = false,
                         })
                         ---@diagnostic disable-next-line: inject-field
@@ -108,12 +109,6 @@ function M.setup(config)
                                     },
                                 },
                             }, handler, tbufnr)
-                        elseif method == vim.lsp.protocol.Methods.codeAction_resolve then
-                            -- HACK: neovim does not deserialize `null`s and rzls expects an explicit `null` value
-                            -- in the `params.data.delegatedDocumentUri` field.
-                            if params and params.data then
-                                params.data.delegatedDocumentUri = vim.NIL
-                            end
                         end
 
                         return req(method, params, handler, tbufnr)
