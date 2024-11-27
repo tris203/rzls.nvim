@@ -2,7 +2,7 @@ local Log = require("rzls.log")
 local M = {}
 
 local requests = {
-    ["initialize"] = function(_)
+    [vim.lsp.protocol.Methods.initialize] = function(_)
         return {
             --- @type lsp.ServerCapabilities
             capabilities = {
@@ -18,18 +18,18 @@ local requests = {
             },
         }
     end,
-    ["shutdown"] = function(_) end,
-    ["textDocument/hover"] = require("rzls.server.methods.hover"),
-    ["textDocument/definition"] = require("rzls.server.methods.definition"),
-    ["textDocument/references"] = require("rzls.server.methods.references"),
-    ["textDocument/rename"] = require("rzls.server.methods.rename"),
-    ["textDocument/signatureHelp"] = require("rzls.server.methods.signaturehelp"),
-    ["textDocument/documentHighlight"] = require("rzls.server.methods.documenthighlight"),
+    [vim.lsp.protocol.Methods.shutdown] = function(_) end,
+    [vim.lsp.protocol.Methods.textDocument_hover] = require("rzls.server.methods.hover"),
+    [vim.lsp.protocol.Methods.textDocument_definition] = require("rzls.server.methods.definition"),
+    [vim.lsp.protocol.Methods.textDocument_references] = require("rzls.server.methods.references"),
+    [vim.lsp.protocol.Methods.textDocument_rename] = require("rzls.server.methods.rename"),
+    [vim.lsp.protocol.Methods.textDocument_signatureHelp] = require("rzls.server.methods.signaturehelp"),
+    [vim.lsp.protocol.Methods.textDocument_documentHighlight] = require("rzls.server.methods.documenthighlight"),
 }
 
 local noops = {
-    ["initialized"] = true,
-    ["textDocument/didSave"] = true,
+    [vim.lsp.protocol.Methods.initialized] = true,
+    [vim.lsp.protocol.Methods.textDocument_didSave] = true,
 }
 
 function M.server()
