@@ -18,6 +18,13 @@ local requests = {
             return nil
         end
 
+        ---disable in rzls the things that aftershave will directly
+        local rzls_disabled_capabilities = {
+            renameProvider = false,
+        }
+        rzls_client.server_capabilities =
+            vim.tbl_deep_extend("force", rzls_client.server_capabilities, rzls_disabled_capabilities)
+
         return {
             --- @type lsp.ServerCapabilities
             capabilities = {
