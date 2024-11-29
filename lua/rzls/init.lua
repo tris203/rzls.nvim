@@ -79,38 +79,6 @@ function M.setup(config)
                     razor.apply_highlights()
                     documentstore.register_vbufs(bufnr)
                     rzlsconfig.on_attach(client, bufnr)
-                    if not client._rzls_hacked_capabilities then
-                        client.server_capabilities = vim.tbl_deep_extend("force", client.server_capabilities, {
-                            semanticTokensProvider = {
-                                full = true,
-                            },
-                            renameProvider = false,
-                        })
-                        ---@diagnostic disable-next-line: inject-field
-                        client._rzls_hacked_capabilities = true
-                    end
-                    local req = client.request
-                    client.request = function(method, params, handler, tbufnr)
-                        if method == vim.lsp.protocol.Methods.textDocument_semanticTokens_full then
-                            return req(vim.lsp.protocol.Methods.textDocument_semanticTokens_range, {
-                                textDocument = params.textDocument,
-                                range = {
-                                    start = {
-                                        line = 0,
-                                        character = 0,
-                                    },
-                                    ["end"] = {
-                                        line = vim.api.nvim_buf_line_count(tbufnr),
-                                        character = (
-                                            string.len(vim.api.nvim_buf_get_lines(tbufnr, -2, -1, true)[1]) - 1
-                                        )
-                                            or 0,
-                                    },
-                                },
-                            }, handler, tbufnr)
-                        end
-                        return req(method, params, handler, tbufnr)
-                    end
                 end,
                 capabilities = rzlsconfig.capabilities,
                 settings = {

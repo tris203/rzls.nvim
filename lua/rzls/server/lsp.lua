@@ -1,8 +1,30 @@
 local Log = require("rzls.log")
+local r = require("rzls.razor")
 local M = {}
 
 local requests = {
     [vim.lsp.protocol.Methods.initialize] = function(_)
+        local rzls_client
+        vim.wait(10000, function()
+            rzls_client = vim.lsp.get_clients({ name = r.lsp_names[r.language_kinds.razor] })[1]
+            if rzls_client then
+                return true
+            end
+            return false
+        end, 100)
+
+        if not rzls_client then
+            Log.aftershave = "Failed to get rzls client"
+            return nil
+        end
+
+        ---disable in rzls the things that aftershave will directly
+        local rzls_disabled_capabilities = {
+            renameProvider = false,
+        }
+        rzls_client.server_capabilities =
+            vim.tbl_deep_extend("force", rzls_client.server_capabilities, rzls_disabled_capabilities)
+
         return {
             --- @type lsp.ServerCapabilities
             capabilities = {
@@ -15,6 +37,10 @@ local requests = {
                     triggerCharacters = { "(", ",", "<" },
                     retriggerCharacters = { ">", ")" },
                 },
+                semanticTokensProvider = {
+                    full = true,
+                    legend = rzls_client.server_capabilities.semanticTokensProvider.legend,
+                },
             },
         }
     end,
@@ -25,6 +51,7 @@ local requests = {
     [vim.lsp.protocol.Methods.textDocument_rename] = require("rzls.server.methods.rename"),
     [vim.lsp.protocol.Methods.textDocument_signatureHelp] = require("rzls.server.methods.signaturehelp"),
     [vim.lsp.protocol.Methods.textDocument_documentHighlight] = require("rzls.server.methods.documenthighlight"),
+    [vim.lsp.protocol.Methods.textDocument_semanticTokens_full] = require("rzls.server.methods.semantictokens_full"),
 }
 
 local noops = {
