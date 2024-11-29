@@ -64,14 +64,20 @@ function M.setup(config)
                     "true",
                 },
                 on_init = function(client, _initialize_result)
-                    M.load_existing_files(client.root_dir)
-                    vim.api.nvim_create_autocmd("User", {
-                        pattern = "RoslynInitialized",
-                        callback = function()
-                            documentstore.initialize(client)
-                        end,
-                        group = au,
-                    })
+                    documentstore.load_existing_files(client.root_dir)
+                    ---@module "roslyn"
+                    local roslyn_pipes = require("roslyn.server").get_pipes()
+                    if roslyn_pipes[root_dir] then
+                        documentstore.initialize(client)
+                    else
+                        vim.api.nvim_create_autocmd("User", {
+                            pattern = "RoslynInitialized",
+                            callback = function()
+                                documentstore.initialize(client)
+                            end,
+                            group = au,
+                        })
+                    end
                     M.watch_new_files(root_dir)
                 end,
                 root_dir = root_dir,
@@ -117,14 +123,6 @@ function M.setup(config)
         group = au,
         callback = razor.apply_highlights,
     })
-end
-
-function M.load_existing_files(path)
-    local files = vim.fn.glob(path .. "/**/*.razor", true, true)
-    for _, file in ipairs(files) do
-        Log.rzlsnvim = "Preloading " .. file .. " into documentstore"
-        documentstore.register_vbufs_by_path(file)
-    end
 end
 
 function M.watch_new_files(path)
