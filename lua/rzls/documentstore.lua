@@ -179,6 +179,14 @@ local state = {
     end,
 }
 
+function M.load_existing_files(path)
+    local files = vim.fn.glob(path .. "/**/*.razor", true, true)
+    for _, file in ipairs(files) do
+        Log.rzlsnvim = "Preloading " .. file .. " into documentstore"
+        M.register_vbufs_by_path(file)
+    end
+end
+
 setmetatable(M, {
     __index = function(_, k)
         if state[k] then
