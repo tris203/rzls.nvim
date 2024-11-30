@@ -24,7 +24,7 @@ auto-completion, go-to-definition, and more all from within neovim 💻🔧
 | Completions           | ✅          |
 | Inlay Hints           | ✅          |
 | Code Actions          | ❌          |
-| Folding               | ❌          |
+| Folding               | ✅          |
 | CodeLens              | ❌          |
 | Format New Files      | ❌          |
 

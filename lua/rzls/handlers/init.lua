@@ -45,7 +45,7 @@ return {
     ["razor/provideHtmlColorPresentation"] = not_supported,
     ["razor/provideHtmlDocumentColor"] = require("rzls.handlers.providehtmldocumentcolor"),
     ["razor/provideSemanticTokensRange"] = require("rzls.handlers.providesemantictokensrange"),
-    ["razor/foldingRange"] = not_implemented,
+    ["razor/foldingRange"] = require("rzls.handlers.foldingrange"),
 
     ["razor/htmlFormatting"] = require("rzls.handlers.htmlformatting"),
     ["razor/htmlOnTypeFormatting"] = not_implemented,
