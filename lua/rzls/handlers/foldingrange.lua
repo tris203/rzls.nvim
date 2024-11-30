@@ -46,6 +46,8 @@ return function(_err, result, _ctx, _config)
         )
     end
 
+    ---NOTE: VsCode remaps the start and end characters back to the begining of the row, but we dont seem to need to
+
     return {
         csharpRanges = not cerr and csharp_folds or empty_response,
         htmlRanges = not herr and html_folds or empty_response,
