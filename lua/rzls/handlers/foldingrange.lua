@@ -7,6 +7,13 @@ local razor = require("rzls.razor")
 
 local empty_response = {}
 
+local function convert_folding_ranges(folds)
+    for _, fold in ipairs(folds) do
+        fold.startCharacter = 0
+        fold.endCharacter = 0
+    end
+end
+
 ---@param _err lsp.ResponseError
 ---@param result rzls.foldingRangeParams
 ---@param _ctx lsp.HandlerContext
@@ -46,10 +53,14 @@ return function(_err, result, _ctx, _config)
         )
     end
 
-    ---NOTE: VsCode remaps the start and end characters back to the begining of the row, but we dont seem to need to
+    csharp_folds = not cerr and csharp_folds or empty_response
+    html_folds = not herr and html_folds or empty_response
+
+    convert_folding_ranges(csharp_folds)
+    convert_folding_ranges(html_folds)
 
     return {
-        csharpRanges = not cerr and csharp_folds or empty_response,
-        htmlRanges = not herr and html_folds or empty_response,
+        csharpRanges = csharp_folds,
+        htmlRanges = html_folds,
     }
 end
