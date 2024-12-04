@@ -180,11 +180,13 @@ local state = {
 }
 
 function M.load_existing_files(path)
-    local files = vim.fn.glob(path .. "/**/*.razor", true, true)
-    for _, file in ipairs(files) do
-        Log.rzlsnvim = "Preloading " .. file .. " into documentstore"
-        M.register_vbufs_by_path(file)
-    end
+    coroutine.wrap(function()
+        local files = vim.fn.glob(path .. "/**/*.{razor,cshtml,csproj}", true, true)
+        for _, file in ipairs(files) do
+            Log.rzlsnvim = "Preloading " .. file .. " into documentstore"
+            M.register_vbufs_by_path(file)
+        end
+    end)()
 end
 
 setmetatable(M, {
