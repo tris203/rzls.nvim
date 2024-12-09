@@ -18,7 +18,7 @@ local Log = require("rzls.log")
 ---@field checksum string
 ---@field checksum_algorithm number
 ---@field encoding_code_page number | nil
----@field edits Change[]
+---@field updates VBufUpdate[]
 local VirtualDocument = {}
 
 VirtualDocument.__index = VirtualDocument
@@ -36,6 +36,7 @@ function VirtualDocument:new(bufnr, kind, uri)
             content = "",
             path = vim.uri_from_bufnr(bufnr),
             kind = kind,
+            updates = {},
             change_event = EventEmitter:new(),
         }, self)
     end
@@ -46,6 +47,7 @@ function VirtualDocument:new(bufnr, kind, uri)
         content = "",
         path = uri,
         kind = kind,
+        updates = {},
         change_event = EventEmitter:new(),
     }, self)
 end
@@ -59,13 +61,14 @@ local function apply_change(content, change)
     return before .. change.newText .. after
 end
 
----@param result VBufUpdate
-function VirtualDocument:update_content(result)
-    for _, change in ipairs(vim.fn.reverse(result.changes)) do
-        self.content = apply_change(self.content, change)
+function VirtualDocument:update_content()
+    for i, details in ipairs(self.updates) do
+        for _, change in ipairs(vim.fn.reverse(details.changes)) do
+            self.content = apply_change(self.content, change)
+        end
+        self.host_document_version = details.hostDocumentVersion
+        self.updates[i] = nil
     end
-
-    self.host_document_version = result.hostDocumentVersion
 
     self.change_event:fire()
 end
@@ -212,7 +215,7 @@ function VirtualDocument:language_query(position)
     ---@diagnostic disable-next-line: param-type-mismatch
     local response = lsp.request_sync("razor/languageQuery", {
         position = position,
-        uri = vim.uri_from_bufnr(self.buf),
+        uri = self.path,
         --=TODO: Remove when 0.11 only
         ---@diagnostic disable-next-line: param-type-mismatch
     }, nil, self.buf)
@@ -242,7 +245,7 @@ function VirtualDocument:map_to_document_ranges(language_kind, ranges)
     --=TODO: Remove when 0.11 only
     ---@diagnostic disable-next-line: param-type-mismatch
     local response = lsp.request_sync("razor/mapToDocumentRanges", {
-        razorDocumentUri = vim.uri_from_bufnr(self.buf),
+        razorDocumentUri = self.path,
         kind = language_kind,
         projectedRanges = ranges,
         --=TODO: Remove when 0.11 only

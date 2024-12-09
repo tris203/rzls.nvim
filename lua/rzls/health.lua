@@ -16,7 +16,7 @@ M.check = function()
                 "razor virtual document open: [buf:" .. docs.buf .. "] [v:" .. docs.host_document_version .. "]"
             )
         else
-            vim.health.info("razor virtual document not open")
+            vim.health.ok("razor virtual document not open")
         end
 
         for _, lang in pairs({ "csharp", "html" }) do
@@ -33,7 +33,13 @@ M.check = function()
                         .. doc.path
                 )
             else
-                vim.health.error("  " .. lang .. " virtual document not found")
+                if lang == "html" then
+                    vim.health.error("  " .. lang .. " virtual document not found")
+                elseif lang == "csharp" then
+                    vim.health.ok("  " .. lang .. " virtual document not open")
+                else
+                    vim.error("HOW DID I GET HERE? " .. lang)
+                end
             end
         end
     end

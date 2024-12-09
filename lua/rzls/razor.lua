@@ -52,6 +52,13 @@ local M = {}
 
 ---@class razor.ProvideDynamicFileResponse
 ---@field csharpDocument? lsp.TextDocumentIdentifier
+---@field updates? razor.DynamicFileUpdate[]
+---@field checksum string
+---@field checksumAlgorithm number
+---@field enodingCodePage number
+
+---@class razor.DynamicFileUpdate
+---@field edits Change[]
 
 ---@class razor.DynamicFileUpdatedParams
 ---@field razorDocument lsp.TextDocumentIdentifier

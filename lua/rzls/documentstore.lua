@@ -52,22 +52,41 @@ function M.register_vbufs_by_path(current_file, ensure_open)
 
     if ensure_open then
         local buf = vim.uri_to_bufnr(current_file)
-        vim.notify(buf .. "updating buf for " .. current_file)
         ---@type rzls.VirtualDocument
         local vd = virtual_documents[current_file]
         local success = vd:update_bufnr(buf)
         assert(success, "Failed to update bufnr for " .. current_file)
     end
 
-    if virtual_documents[current_file][razor.language_kinds.csharp] == nil then
-        local buf = get_or_create_vbuffer_for_uri(current_file, "csharp")
+    if not virtual_documents[current_file][razor.language_kinds.csharp] then
+        local name = current_file .. razor.virtual_suffixes["csharp"]
+        local opened = document_is_open(name)
+        if not opened and not ensure_open then
+            virtual_documents[current_file][razor.language_kinds.csharp] =
+                VirtualDocument:new(nil, razor.language_kinds.csharp, name)
+        else
+            local buf = get_or_create_vbuffer_for_uri(current_file, "csharp")
+            vim.defer_fn(function()
+                -- Defer setting buftype to nowrite to let LSP attach
+                vim.api.nvim_set_option_value("buftype", "nowrite", { buf = buf })
+            end, 250)
+
+            virtual_documents[current_file][razor.language_kinds.csharp] =
+                VirtualDocument:new(buf, razor.language_kinds.csharp)
+        end
+    end
+
+    if ensure_open then
+        local name = current_file .. razor.virtual_suffixes["csharp"]
+        local buf = vim.uri_to_bufnr(name)
+        ---@type rzls.VirtualDocument
+        local cvd = virtual_documents[current_file][razor.language_kinds.csharp]
+        local success = cvd:update_bufnr(buf)
+        assert(success, "Failed to update bufnr for " .. name)
         vim.defer_fn(function()
             -- Defer setting buftype to nowrite to let LSP attach
             vim.api.nvim_set_option_value("buftype", "nowrite", { buf = buf })
         end, 250)
-
-        virtual_documents[current_file][razor.language_kinds.csharp] =
-            VirtualDocument:new(buf, razor.language_kinds.csharp)
     end
 
     if virtual_documents[current_file][razor.language_kinds.html] == nil then
@@ -89,32 +108,36 @@ function M.update_vbuf(result, language_kind)
     ---@type rzls.VirtualDocument
     local virtual_document = virtual_documents[uri][language_kind]
 
-    virtual_document:update_content(result)
     virtual_document.checksum = result.checksum
     virtual_document.checksum_algorithm = result.checksumAlgorithm or 1
     virtual_document.encoding_code_page = result.encodingCodePage
-    virtual_document.edits = result.changes
+    table.insert(virtual_document.updates, result)
+    virtual_document:update_content()
 
-    local buf_eol = utils.buffer_eol(virtual_document.buf)
-    local lines = vim.fn.split(virtual_document.content, buf_eol, true)
-    vim.api.nvim_buf_set_lines(virtual_document.buf, 0, -1, false, lines)
-
-    local roslyn = virtual_document:get_lsp_client()
-    ---@type razor.DynamicFileUpdatedParams
-    local params = {
-        razorDocument = {
-            uri = virtual_documents[uri].uri,
-        },
-    }
-
-    if not roslyn then
-        ---TODO: is this right? there is no roslyn to notify
-        return
+    if virtual_document.buf then
+        local buf_eol = utils.buffer_eol(virtual_document.buf)
+        local lines = vim.fn.split(virtual_document.content, buf_eol, true)
+        vim.api.nvim_buf_set_lines(virtual_document.buf, 0, -1, false, lines)
     end
 
-    --=TODO: Remove when 0.11 only
-    ---@diagnostic disable-next-line: param-type-mismatch
-    roslyn.notify(razor.notification.razor_dynamicFileInfoChanged, params)
+    if language_kind == razor.language_kinds.csharp and not virtual_document.buf then
+        local roslyn = virtual_document:get_lsp_client()
+        ---@type razor.DynamicFileUpdatedParams
+        local params = {
+            razorDocument = {
+                uri = virtual_documents[uri].path,
+            },
+        }
+
+        if not roslyn then
+            ---TODO: is this right? there is no roslyn to notify
+            return
+        end
+
+        --=TODO: Remove when 0.11 only
+        ---@diagnostic disable-next-line: param-type-mismatch
+        roslyn.notify(razor.notification.razor_dynamicFileInfoChanged, params)
+    end
 end
 
 ---Refreshes parent views of the given virtual document

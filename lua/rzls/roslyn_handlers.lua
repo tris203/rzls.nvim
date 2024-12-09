@@ -17,38 +17,48 @@ local function roslyn_razor_provideDynamicFileHandler(_err, result, _ctx, _confi
     end
 
     if result.fullText then
-        --TODO: This shouldnt happen at the moment
-        --But we will support it when we dont open all the documents on a vbuf update
-        vim.print("requested full")
-        vim.print(vim.inspect(result))
-        return {
+        ---@type razor.ProvideDynamicFileResponse
+        local resp = {
             csharpDocument = {
-                uri = vim.uri_from_bufnr(vd.buf),
+                uri = vd.path,
             },
             checksum = vd.checksum,
             checksumAlgorithm = vd.checksum_algorithm,
             enodingCodePage = vd.encoding_code_page,
-            edits = {
+            updates = {
                 {
-                    newText = vd.content,
-                    span = {
-                        start = 0,
-                        length = 0,
+                    edits = {
+                        {
+                            newText = vd.content,
+                            span = {
+                                start = 0,
+                                length = 0,
+                            },
+                        },
                     },
                 },
             },
         }
+        return resp
     end
 
-    return {
+    ---@type razor.DynamicFileUpdate[]
+    local edits = vim.iter(vd.updates)
+        :map(function(v)
+            return { edits = v.changes }
+        end)
+        :totable()
+    ---@type razor.ProvideDynamicFileResponse
+    local resp = {
         csharpDocument = {
-            uri = vim.uri_from_bufnr(vd.buf),
+            uri = vd.path,
         },
         checksum = vd.checksum,
         checksumAlgorithm = vd.checksum_algorithm,
         enodingCodePage = vd.encoding_code_page,
-        edits = not vd.buf and vd.edits or vim.NIL,
+        updates = not vd.buf and edits or nil,
     }
+    return resp
 end
 
 return {
