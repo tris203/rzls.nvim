@@ -3,15 +3,6 @@ local utils = require("rzls.utils")
 local VirtualDocument = require("rzls.virtual_document")
 local Log = require("rzls.log")
 
----@class rzls.ProjectedDocuments
----@field virtual_html rzls.ProjectedDocument
----@field virtual_csharp rzls.ProjectedDocument
-
----@class rzls.ProjectedDocument
----@field buf number
----@field hostDocumentVersion number
----@field content string
-
 local M = {}
 
 ---@type rzls.VirtualDocument<string, table<razor.LanguageKind, rzls.VirtualDocument>>
@@ -66,9 +57,14 @@ end
 function M.update_vbuf(result, language_kind)
     M.register_vbufs_by_path(result.hostDocumentFilePath)
     local uri = vim.uri_from_fname(result.hostDocumentFilePath)
+    ---@type rzls.VirtualDocument
     local virtual_document = virtual_documents[uri][language_kind]
 
     virtual_document:update_content(result)
+    virtual_document.checksum = result.checksum
+    virtual_document.checksum_algorithm = result.checksumAlgorithm or 1
+    virtual_document.encoding_code_page = result.encodingCodePage
+    virtual_document.edits = result.changes
 
     local buf_eol = utils.buffer_eol(virtual_document.buf)
     local lines = vim.fn.split(virtual_document.content, buf_eol, true)
@@ -155,11 +151,16 @@ function M.initialize(client)
 
     local function initialize_roslyn()
         local roslyn_client = vim.lsp.get_clients({ name = "roslyn" })[1]
-        roslyn_client.notify("razor/initialize", {
+
+        --=TODO: Remove when 0.11 only
+        ---@diagnostic disable-next-line: param-type-mismatch
+        roslyn_client.notify(razor.notification.razor_initialize, {
             pipeName = pipe_name,
         })
 
-        client.notify("razor/namedPipeConnect", {
+        --=TODO: Remove when 0.11 only
+        ---@diagnostic disable-next-line: param-type-mismatch
+        client.notify(razor.notification.razor_namedPipeConnect, {
             pipeName = pipe_name,
         })
     end
@@ -178,14 +179,6 @@ local state = {
         return pipe_name
     end,
 }
-
-function M.load_existing_files(path)
-    local files = vim.fn.glob(path .. "/**/*.razor", true, true)
-    for _, file in ipairs(files) do
-        Log.rzlsnvim = "Preloading " .. file .. " into documentstore"
-        M.register_vbufs_by_path(file)
-    end
-end
 
 setmetatable(M, {
     __index = function(_, k)

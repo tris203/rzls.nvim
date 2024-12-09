@@ -48,6 +48,7 @@ local M = {}
 
 ---@class razor.ProvideDynamicFileParams
 ---@field razorDocument lsp.TextDocumentIdentifier
+---@field fullText boolean
 
 ---@class razor.ProvideDynamicFileResponse
 ---@field csharpDocument? lsp.TextDocumentIdentifier
@@ -80,6 +81,12 @@ M.lsp_names = {
     [M.language_kinds.html] = "html",
     [M.language_kinds.csharp] = "roslyn",
     [M.language_kinds.razor] = "rzls",
+}
+
+M.notification = {
+    razor_namedPipeConnect = "razor/namedPipeConnect",
+    razor_initialize = "razor/initialize",
+    razor_dynamicFileInfoChanged = "razor/dynamicFileInfoChanged",
 }
 
 ---@type table<string, vim.api.keyset.highlight>
