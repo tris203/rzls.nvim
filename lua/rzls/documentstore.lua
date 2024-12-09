@@ -66,6 +66,7 @@ function M.register_vbufs_by_path(current_file, ensure_open)
                 VirtualDocument:new(nil, razor.language_kinds.csharp, name)
         else
             local buf = get_or_create_vbuffer_for_uri(current_file, "csharp")
+            vim.api.nvim_set_option_value("filetype", "cs", { buf = buf })
             vim.defer_fn(function()
                 -- Defer setting buftype to nowrite to let LSP attach
                 vim.api.nvim_set_option_value("buftype", "nowrite", { buf = buf })
@@ -79,6 +80,7 @@ function M.register_vbufs_by_path(current_file, ensure_open)
     if ensure_open then
         local name = current_file .. razor.virtual_suffixes["csharp"]
         local buf = vim.uri_to_bufnr(name)
+        vim.api.nvim_set_option_value("filetype", "cs", { buf = buf })
         ---@type rzls.VirtualDocument
         local cvd = virtual_documents[current_file][razor.language_kinds.csharp]
         local success = cvd:update_bufnr(buf)
