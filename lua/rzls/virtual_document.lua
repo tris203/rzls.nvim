@@ -4,7 +4,7 @@ local EventEmitter = require("rzls.eventemitter")
 local Log = require("rzls.log")
 
 ---@class rzls.VirtualDocument
----@field buf number
+---@field buf? number
 ---@field path string
 ---@field host_document_version number
 ---@field content string
@@ -23,19 +23,28 @@ local VirtualDocument = {}
 
 VirtualDocument.__index = VirtualDocument
 
----@param bufnr integer
+---@param bufnr? integer
 ---@param kind razor.LanguageKind
+---@param uri? string
 ---@return rzls.VirtualDocument
-function VirtualDocument:new(bufnr, kind)
+function VirtualDocument:new(bufnr, kind, uri)
     assert(kind, "kind is required")
-    --TODO: Allow opening of closed documents without a bufnr
-    --We will do this by making the bufnr optional, and storing just the uri in the path field
-    assert(bufnr, "bufnr is required")
+    if bufnr then
+        return setmetatable({
+            buf = bufnr,
+            host_document_version = 0,
+            content = "",
+            path = vim.uri_from_bufnr(bufnr),
+            kind = kind,
+            change_event = EventEmitter:new(),
+        }, self)
+    end
+    assert(uri, "uri is required if bufnr is not provided")
     return setmetatable({
-        buf = bufnr,
+        buf = nil,
         host_document_version = 0,
         content = "",
-        path = vim.uri_from_bufnr(bufnr),
+        path = uri,
         kind = kind,
         change_event = EventEmitter:new(),
     }, self)
@@ -61,12 +70,22 @@ function VirtualDocument:update_content(result)
     self.change_event:fire()
 end
 
+---update the bufnr of the virtual document
+---@param bufnr number
+---@return boolean
+function VirtualDocument:update_bufnr(bufnr)
+    self.buf = bufnr
+    assert(self.buf, "bufnr is nil")
+    return true
+end
+
 function VirtualDocument:ensure_content()
     vim.api.nvim_buf_set_lines(self.buf, 0, -1, true, self:lines())
 end
 
 ---@return vim.lsp.Client|nil
 function VirtualDocument:get_lsp_client()
+    ---TODO: virtual docs might not be real, so may not have a buf
     return vim.lsp.get_clients({ bufnr = self.buf, name = razor.lsp_names[self.kind] })[1]
 end
 

@@ -18,16 +18,45 @@ local function get_or_create_vbuffer_for_uri(uri, suffix)
     return buf
 end
 
+---Discover if doc is already open
+---@param uri string
+---@return integer?
+local function document_is_open(uri)
+    local opened_buffers = vim.api.nvim_list_bufs()
+    for i = 1, #opened_buffers do
+        local buf = opened_buffers[i]
+        local buf_uri = vim.uri_from_bufnr(buf)
+        if buf_uri == uri then
+            return opened_buffers[i]
+        end
+    end
+end
+
 ---Registers virtual buffers for the given file path
 ---@param current_file string
-function M.register_vbufs_by_path(current_file)
+---@param ensure_open boolean
+function M.register_vbufs_by_path(current_file, ensure_open)
     -- open virtual files
     --
     current_file = vim.uri_from_fname(current_file)
 
     if not virtual_documents[current_file] then
+        local opened = document_is_open(current_file)
+        if not opened and not ensure_open then
+            virtual_documents[current_file] = VirtualDocument:new(nil, razor.language_kinds.razor, current_file)
+        else
+            local buf = vim.uri_to_bufnr(current_file)
+            virtual_documents[current_file] = VirtualDocument:new(buf, razor.language_kinds.razor)
+        end
+    end
+
+    if ensure_open then
         local buf = vim.uri_to_bufnr(current_file)
-        virtual_documents[current_file] = VirtualDocument:new(buf, razor.language_kinds.razor)
+        vim.notify(buf .. "updating buf for " .. current_file)
+        ---@type rzls.VirtualDocument
+        local vd = virtual_documents[current_file]
+        local success = vd:update_bufnr(buf)
+        assert(success, "Failed to update bufnr for " .. current_file)
     end
 
     if virtual_documents[current_file][razor.language_kinds.csharp] == nil then
@@ -55,7 +84,7 @@ end
 ---@param result VBufUpdate
 ---@param language_kind razor.LanguageKind
 function M.update_vbuf(result, language_kind)
-    M.register_vbufs_by_path(result.hostDocumentFilePath)
+    M.register_vbufs_by_path(result.hostDocumentFilePath, false)
     local uri = vim.uri_from_fname(result.hostDocumentFilePath)
     ---@type rzls.VirtualDocument
     local virtual_document = virtual_documents[uri][language_kind]
@@ -69,15 +98,23 @@ function M.update_vbuf(result, language_kind)
     local buf_eol = utils.buffer_eol(virtual_document.buf)
     local lines = vim.fn.split(virtual_document.content, buf_eol, true)
     vim.api.nvim_buf_set_lines(virtual_document.buf, 0, -1, false, lines)
-end
 
----Creates virtual buffers for the given source buffer
----@param source_buf integer
-function M.register_vbufs(source_buf)
-    -- local currentFile = vim.api.nvim_buf_get_name(source_buf)
-    local currentFile = vim.uri_from_bufnr(source_buf)
-    currentFile = vim.uri_to_fname(currentFile)
-    return M.register_vbufs_by_path(currentFile)
+    local roslyn = virtual_document:get_lsp_client()
+    ---@type razor.DynamicFileUpdatedParams
+    local params = {
+        razorDocument = {
+            uri = virtual_documents[uri].uri,
+        },
+    }
+
+    if not roslyn then
+        ---TODO: is this right? there is no roslyn to notify
+        return
+    end
+
+    --=TODO: Remove when 0.11 only
+    ---@diagnostic disable-next-line: param-type-mismatch
+    roslyn.notify(razor.notification.razor_dynamicFileInfoChanged, params)
 end
 
 ---Refreshes parent views of the given virtual document

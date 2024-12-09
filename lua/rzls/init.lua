@@ -81,7 +81,7 @@ function M.setup(config)
                 root_dir = root_dir,
                 on_attach = function(client, bufnr)
                     razor.apply_highlights()
-                    documentstore.register_vbufs(bufnr)
+                    documentstore.register_vbufs_by_path(vim.uri_to_fname(vim.uri_from_bufnr(bufnr)), true)
                     rzlsconfig.on_attach(client, bufnr)
                 end,
                 capabilities = rzlsconfig.capabilities,

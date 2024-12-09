@@ -53,6 +53,9 @@ local M = {}
 ---@class razor.ProvideDynamicFileResponse
 ---@field csharpDocument? lsp.TextDocumentIdentifier
 
+---@class razor.DynamicFileUpdatedParams
+---@field razorDocument lsp.TextDocumentIdentifier
+
 ---@class razor.DelegatedInlayHintParams
 ---@field identifier { textDocumentIdentifier: lsp.TextDocumentIdentifier, version: integer }
 ---@field projectedKind razor.LanguageKind
@@ -87,6 +90,7 @@ M.notification = {
     razor_namedPipeConnect = "razor/namedPipeConnect",
     razor_initialize = "razor/initialize",
     razor_dynamicFileInfoChanged = "razor/dynamicFileInfoChanged",
+    razor_provideDynamicFileInfo = "razor/provideDynamicFileInfo",
 }
 
 ---@type table<string, vim.api.keyset.highlight>

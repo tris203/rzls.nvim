@@ -6,14 +6,17 @@ M.check = function()
     vim.health.start("rzls.nvim report")
     -- make sure setup function parameters are ok
 
+    vim.health.start("document store")
     ---@type rzls.VirtualDocument<string, table<razor.LanguageKind, rzls.VirtualDocument>>
     local document_store = require("rzls.documentstore").get_docstore
     for razor_filename, docs in pairs(document_store) do
         vim.health.info("razor file: " .. razor_filename)
         if docs.buf then
-            vim.health.ok("razor virtual document found: " .. docs.buf .. " v: " .. docs.host_document_version)
+            vim.health.ok(
+                "razor virtual document open: [buf:" .. docs.buf .. "] [v:" .. docs.host_document_version .. "]"
+            )
         else
-            vim.health.error("razor virtual document not found")
+            vim.health.info("razor virtual document not open")
         end
 
         for _, lang in pairs({ "csharp", "html" }) do
@@ -34,6 +37,8 @@ M.check = function()
             end
         end
     end
+
+    vim.health.start("roslyn pipe")
 
     local roslyn_pipe_id = require("rzls.documentstore").get_roslyn_pipe
 

@@ -8,12 +8,6 @@ local razor = require("rzls.razor")
 ---@return razor.ProvideDynamicFileResponse|nil
 ---@return lsp.ResponseError|nil
 local function roslyn_razor_provideDynamicFileHandler(_err, result, _ctx, _config)
-    local razor_client = vim.lsp.get_clients({ name = razor.lsp_names[razor.language_kinds.razor] })[1]
-    local roslyn_client = vim.lsp.get_clients({ name = razor.lsp_names[razor.language_kinds.csharp] })[1]
-
-    local root_dir = (razor_client and razor_client.root_dir) or (roslyn_client and roslyn_client.root_dir)
-    assert(root_dir, "Could not find root directory")
-
     if result.razorDocument == nil then
         return nil, vim.lsp.rpc.rpc_response_error(-32602, "Missing razorDocument")
     end
@@ -22,24 +16,30 @@ local function roslyn_razor_provideDynamicFileHandler(_err, result, _ctx, _confi
         return nil, vim.lsp.rpc.rpc_response_error(-32600, "Could not find requested document")
     end
 
-    ---@type Change[]
-    local full_change
-    if result.FullText then
-        --NOTE: This shouldnt happen at the moment
+    if result.fullText then
+        --TODO: This shouldnt happen at the moment
         --But we will support it when we dont open all the documents on a vbuf update
-        full_change = {
-            {
-                newText = vd.content,
-                span = {
-                    start = 0,
-                    length = 0,
+        vim.print("requested full")
+        vim.print(vim.inspect(result))
+        return {
+            csharpDocument = {
+                uri = vim.uri_from_bufnr(vd.buf),
+            },
+            checksum = vd.checksum,
+            checksumAlgorithm = vd.checksum_algorithm,
+            enodingCodePage = vd.encoding_code_page,
+            edits = {
+                {
+                    newText = vd.content,
+                    span = {
+                        start = 0,
+                        length = 0,
+                    },
                 },
             },
         }
-        vim.print("requested full")
-        vim.print(vim.inspect(result))
-        assert(false, "Not implemented")
     end
+
     return {
         csharpDocument = {
             uri = vim.uri_from_bufnr(vd.buf),
@@ -47,10 +47,10 @@ local function roslyn_razor_provideDynamicFileHandler(_err, result, _ctx, _confi
         checksum = vd.checksum,
         checksumAlgorithm = vd.checksum_algorithm,
         enodingCodePage = vd.encoding_code_page,
-        edits = result.FullText and full_change or vd.edits,
+        edits = not vd.buf and vd.edits or vim.NIL,
     }
 end
 
 return {
-    ["razor/provideDynamicFileInfo"] = roslyn_razor_provideDynamicFileHandler,
+    [razor.notification.razor_provideDynamicFileInfo] = roslyn_razor_provideDynamicFileHandler,
 }
