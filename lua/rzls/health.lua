@@ -44,7 +44,20 @@ M.check = function()
         end
     end
 
-    vim.health.start("roslyn pipe")
+    vim.health.start("lsp info")
+
+    local lsps = {
+        roslyn = vim.lsp.get_clients({ name = razor.lsp_names[razor.language_kinds.csharp] })[1],
+        rzls = vim.lsp.get_clients({ name = razor.lsp_names[razor.language_kinds.razor] })[1],
+        html = vim.lsp.get_clients({ name = razor.lsp_names[razor.language_kinds.html] })[1],
+    }
+    for name, client in pairs(lsps) do
+        if not client then
+            vim.health.error("lsp client " .. name .. " not found")
+        else
+            vim.health.ok("lsp client " .. name .. " found")
+        end
+    end
 
     local roslyn_pipe_id = require("rzls.documentstore").get_roslyn_pipe
 
