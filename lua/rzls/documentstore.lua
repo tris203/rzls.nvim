@@ -72,9 +72,24 @@ function M.register_vbufs_by_path(current_file, ensure_open)
     end
 
     local html_uri = current_file .. razor.virtual_suffixes["html"]
-    if virtual_documents[current_file][razor.language_kinds.html] == nil then
+    if not virtual_documents[current_file][razor.language_kinds.html] then
+        local opened = document_is_open(html_uri)
+        if not opened and not ensure_open then
+            virtual_documents[current_file][razor.language_kinds.html] =
+                VirtualDocument:new(nil, razor.language_kinds.html, html_uri)
+        else
+            local buf = vim.uri_to_bufnr(html_uri)
+            virtual_documents[current_file][razor.language_kinds.html] =
+                VirtualDocument:new(buf, razor.language_kinds.html)
+        end
+    end
+
+    if ensure_open then
         local buf = vim.uri_to_bufnr(html_uri)
-        virtual_documents[current_file][razor.language_kinds.html] = VirtualDocument:new(buf, razor.language_kinds.html)
+        ---@type rzls.VirtualDocument
+        local hvd = virtual_documents[current_file][razor.language_kinds.html]
+        local success = hvd:update_bufnr(buf)
+        assert(success, "Failed to update bufnr for " .. html_uri)
     end
 end
 

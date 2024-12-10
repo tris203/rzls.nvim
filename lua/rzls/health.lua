@@ -33,13 +33,7 @@ M.check = function()
                         .. doc.path
                 )
             else
-                if lang == "html" then
-                    vim.health.error("  " .. lang .. " virtual document not found")
-                elseif lang == "csharp" then
-                    vim.health.ok("  " .. lang .. " virtual document not open")
-                else
-                    vim.error("HOW DID I GET HERE? " .. lang)
-                end
+                vim.health.ok("  " .. lang .. " virtual document not open")
             end
         end
     end
