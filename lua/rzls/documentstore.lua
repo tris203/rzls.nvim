@@ -8,16 +8,6 @@ local M = {}
 ---@type rzls.VirtualDocument<string, table<razor.LanguageKind, rzls.VirtualDocument>>
 local virtual_documents = {}
 
----comment
----@param uri string
----@param suffix razor.VirtualSuffix?
----@return number
-local function get_or_create_vbuffer_for_uri(uri, suffix)
-    local name = uri .. razor.virtual_suffixes[suffix]
-    local buf = vim.uri_to_bufnr(name)
-    return buf
-end
-
 ---Discover if doc is already open
 ---@param uri string
 ---@return integer?
@@ -58,46 +48,32 @@ function M.register_vbufs_by_path(current_file, ensure_open)
         assert(success, "Failed to update bufnr for " .. current_file)
     end
 
+    local csharp_uri = current_file .. razor.virtual_suffixes["csharp"]
     if not virtual_documents[current_file][razor.language_kinds.csharp] then
-        local name = current_file .. razor.virtual_suffixes["csharp"]
-        local opened = document_is_open(name)
+        local opened = document_is_open(csharp_uri)
         if not opened and not ensure_open then
             virtual_documents[current_file][razor.language_kinds.csharp] =
-                VirtualDocument:new(nil, razor.language_kinds.csharp, name)
+                VirtualDocument:new(nil, razor.language_kinds.csharp, csharp_uri)
         else
-            local buf = get_or_create_vbuffer_for_uri(current_file, "csharp")
+            local buf = vim.uri_to_bufnr(csharp_uri)
             vim.api.nvim_set_option_value("filetype", "cs", { buf = buf })
-            vim.defer_fn(function()
-                -- Defer setting buftype to nowrite to let LSP attach
-                vim.api.nvim_set_option_value("buftype", "nowrite", { buf = buf })
-            end, 250)
-
             virtual_documents[current_file][razor.language_kinds.csharp] =
                 VirtualDocument:new(buf, razor.language_kinds.csharp)
         end
     end
 
     if ensure_open then
-        local name = current_file .. razor.virtual_suffixes["csharp"]
-        local buf = vim.uri_to_bufnr(name)
+        local buf = vim.uri_to_bufnr(csharp_uri)
         vim.api.nvim_set_option_value("filetype", "cs", { buf = buf })
         ---@type rzls.VirtualDocument
         local cvd = virtual_documents[current_file][razor.language_kinds.csharp]
         local success = cvd:update_bufnr(buf)
-        assert(success, "Failed to update bufnr for " .. name)
-        vim.defer_fn(function()
-            -- Defer setting buftype to nowrite to let LSP attach
-            vim.api.nvim_set_option_value("buftype", "nowrite", { buf = buf })
-        end, 250)
+        assert(success, "Failed to update bufnr for " .. csharp_uri)
     end
 
+    local html_uri = current_file .. razor.virtual_suffixes["html"]
     if virtual_documents[current_file][razor.language_kinds.html] == nil then
-        local buf = get_or_create_vbuffer_for_uri(current_file, "html")
-        vim.defer_fn(function()
-            -- Defer setting buftype to nowrite to let LSP attach
-            vim.api.nvim_set_option_value("buftype", "nowrite", { buf = buf })
-        end, 250)
-
+        local buf = vim.uri_to_bufnr(html_uri)
         virtual_documents[current_file][razor.language_kinds.html] = VirtualDocument:new(buf, razor.language_kinds.html)
     end
 end
@@ -232,6 +208,28 @@ function M.initialize(client)
     initialize_roslyn()
     vim.lsp.semantic_tokens.force_refresh(0)
 end
+
+vim.api.nvim_create_autocmd("LspAttach", {
+    callback = function(args)
+        local client = vim.lsp.get_client_by_id(args.data.client_id)
+        if not client then
+            return
+        end
+
+        local uri = vim.uri_from_bufnr(args.buf)
+        if client.name == razor.lsp_names[razor.language_kinds.csharp] then
+            if uri:match(razor.virtual_suffixes.csharp .. "$") then
+                vim.api.nvim_set_option_value("buftype", "nowrite", { buf = args.buf })
+            end
+        end
+
+        if client.name == razor.lsp_names[razor.language_kinds.html] then
+            if uri:match(razor.virtual_suffixes.html .. "$") then
+                vim.api.nvim_set_option_value("buftype", "nowrite", { buf = args.buf })
+            end
+        end
+    end,
+})
 
 local state = {
     get_docstore = function()
