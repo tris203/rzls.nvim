@@ -17,7 +17,7 @@ return function(_err, result, _ctx, _config)
     ---@type lsp.DocumentDiagnosticParams
     local diagnostic_params = vim.tbl_deep_extend("force", result, {
         textDocument = {
-            uri = vim.uri_from_bufnr(virtual_document.buf),
+            uri = virtual_document.uri,
         },
     })
 

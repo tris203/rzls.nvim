@@ -16,7 +16,7 @@ local function provide_lsp_completions(virtual_document, projected_position, tri
         },
         position = projected_position,
         textDocument = {
-            uri = vim.uri_from_bufnr(virtual_document.buf),
+            uri = virtual_document.uri,
         },
     }
     local response = virtual_document:lsp_request(vim.lsp.protocol.Methods.textDocument_completion, params)

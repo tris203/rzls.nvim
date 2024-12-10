@@ -19,7 +19,7 @@ return function(params)
     end
 
     local vd = documentstore.get_virtual_document(
-        rvd.path,
+        rvd.uri,
         language_query_response.kind,
         language_query_response.hostDocumentVersion
     )
@@ -30,7 +30,7 @@ return function(params)
     ---@type lsp.SignatureHelp?
     local sig_help = vd:lsp_request(vim.lsp.protocol.Methods.textDocument_signatureHelp, {
         textDocument = {
-            uri = vd.path,
+            uri = vd.uri,
         },
         position = language_query_response.position,
         context = params.context,

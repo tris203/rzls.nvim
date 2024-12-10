@@ -8,14 +8,6 @@ local razor = require("rzls.razor")
 ---@return razor.ProvideDynamicFileResponse|nil
 ---@return lsp.ResponseError|nil
 local function roslyn_razor_provideDynamicFileHandler(_err, result, _ctx, _config)
-    local razor_client = vim.lsp.get_clients({ name = razor.lsp_names[razor.language_kinds.razor] })[1]
-    local roslyn_client = vim.lsp.get_clients({ name = razor.lsp_names[razor.language_kinds.csharp] })[1]
-
-    local root_dir = (razor_client and razor_client.root_dir) or (roslyn_client and roslyn_client.root_dir)
-    assert(root_dir, "Could not find root directory")
-
-    documentstore.load_existing_files(root_dir)
-
     if result.razorDocument == nil then
         return nil, vim.lsp.rpc.rpc_response_error(-32602, "Missing razorDocument")
     end
@@ -23,19 +15,52 @@ local function roslyn_razor_provideDynamicFileHandler(_err, result, _ctx, _confi
     if not vd then
         return nil, vim.lsp.rpc.rpc_response_error(-32600, "Could not find requested document")
     end
-    local bufnr = vd.buf
 
-    if bufnr == nil then
-        return nil, vim.lsp.rpc.rpc_response_error(-32600, "Could not find requested document")
+    if result.fullText then
+        ---@type razor.ProvideDynamicFileResponse
+        local resp = {
+            csharpDocument = {
+                uri = vd.uri,
+            },
+            checksum = vd.checksum,
+            checksumAlgorithm = vd.checksum_algorithm,
+            enodingCodePage = vd.encoding_code_page,
+            updates = {
+                {
+                    edits = {
+                        {
+                            newText = vd.content,
+                            span = {
+                                start = 0,
+                                length = 0,
+                            },
+                        },
+                    },
+                },
+            },
+        }
+        return resp
     end
 
-    return {
+    ---@type razor.DynamicFileUpdate[]
+    local edits = vim.iter(vd.updates)
+        :map(function(v)
+            return { edits = v.changes }
+        end)
+        :totable()
+    ---@type razor.ProvideDynamicFileResponse
+    local resp = {
         csharpDocument = {
-            uri = vim.uri_from_bufnr(bufnr),
+            uri = vd.uri,
         },
+        checksum = vd.checksum,
+        checksumAlgorithm = vd.checksum_algorithm,
+        enodingCodePage = vd.encoding_code_page,
+        updates = not vd.buf and edits or nil,
     }
+    return resp
 end
 
 return {
-    ["razor/provideDynamicFileInfo"] = roslyn_razor_provideDynamicFileHandler,
+    [razor.notification.razor_provideDynamicFileInfo] = roslyn_razor_provideDynamicFileHandler,
 }

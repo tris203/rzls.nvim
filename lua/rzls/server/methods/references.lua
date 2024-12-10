@@ -19,7 +19,7 @@ return function(params)
     end
 
     local virtual_document = documentstore.get_virtual_document(
-        rvd.path,
+        rvd.uri,
         language_query_response.kind,
         language_query_response.hostDocumentVersion
     )
@@ -30,7 +30,7 @@ return function(params)
     ---@type lsp.Location[]?
     local references_result = virtual_document:lsp_request(vim.lsp.protocol.Methods.textDocument_references, {
         textDocument = {
-            uri = virtual_document.path,
+            uri = virtual_document.uri,
         },
         position = language_query_response.position,
         context = {
