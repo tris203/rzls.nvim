@@ -23,7 +23,7 @@ return function(_err, result, _ctx, _config)
     ---@type lsp.SemanticTokens?
     local tokens, err = vd:lsp_request(vim.lsp.protocol.Methods.textDocument_semanticTokens_range, {
         textDocument = {
-            uri = vd.path,
+            uri = vd.uri,
         },
         range = result.ranges[1],
         correlationId = result.correlationId,

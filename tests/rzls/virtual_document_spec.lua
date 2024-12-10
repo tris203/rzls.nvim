@@ -6,7 +6,7 @@ local eq = assert.are.same
 describe("virtual document", function()
     local vd
     local path = "tests/rzls/fixtures/vdtest.razor__virtual.html"
-    local full_path = "file://" .. vim.loop.cwd() .. "/" .. path
+    local uri = "file://" .. vim.loop.cwd() .. "/" .. path
     vim.cmd.edit({ args = { path } })
     local ls = vim.fn.getbufinfo({ buflisted = 1 })
     local bufnr = ls[1].bufnr
@@ -18,7 +18,7 @@ describe("virtual document", function()
             host_document_version = 0,
             content = "",
             kind = razor.language_kinds.html,
-            path = full_path,
+            uri = uri,
             updates = {},
             change_event = {
                 listeners = {},
@@ -31,7 +31,7 @@ describe("virtual document", function()
             {
                 previousWasEmpty = true,
                 hostDocumentVersion = 1,
-                hostDocumentFilePath = full_path,
+                hostDocumentFilePath = uri,
                 changes = {
                     {
                         newText = "Hello\n",
@@ -49,7 +49,7 @@ describe("virtual document", function()
             host_document_version = 1,
             content = "Hello\n",
             kind = razor.language_kinds.html,
-            path = full_path,
+            uri = uri,
             updates = {},
             change_event = {
                 listeners = {},
@@ -59,7 +59,7 @@ describe("virtual document", function()
             {
                 previousWasEmpty = false,
                 hostDocumentVersion = 2,
-                hostDocumentFilePath = full_path,
+                hostDocumentFilePath = uri,
                 changes = {
                     {
                         newText = " World\n",
@@ -77,7 +77,7 @@ describe("virtual document", function()
             host_document_version = 2,
             content = "Hello World\n",
             kind = razor.language_kinds.html,
-            path = full_path,
+            uri = uri,
             updates = {},
             change_event = {
                 listeners = {},
@@ -88,7 +88,7 @@ describe("virtual document", function()
             {
                 previousWasEmpty = false,
                 hostDocumentVersion = 3,
-                hostDocumentFilePath = full_path,
+                hostDocumentFilePath = uri,
                 changes = {
                     {
                         newText = "stuff\n",
@@ -106,7 +106,7 @@ describe("virtual document", function()
             host_document_version = 3,
             content = "Hello stuff\n",
             kind = razor.language_kinds.html,
-            path = full_path,
+            uri = uri,
             updates = {},
             change_event = {
                 listeners = {},
@@ -117,7 +117,7 @@ describe("virtual document", function()
             {
                 previousWasEmpty = false,
                 hostDocumentVersion = 4,
-                hostDocumentFilePath = full_path,
+                hostDocumentFilePath = uri,
                 changes = {
                     {
                         newText = "in the middle ",
@@ -135,7 +135,7 @@ describe("virtual document", function()
             host_document_version = 4,
             content = "Hello in the middle stuff\n",
             kind = razor.language_kinds.html,
-            path = full_path,
+            uri = uri,
             updates = {},
             change_event = {
                 listeners = {},
@@ -146,7 +146,7 @@ describe("virtual document", function()
             {
                 previousWasEmpty = false,
                 hostDocumentVersion = 5,
-                hostDocumentFilePath = full_path,
+                hostDocumentFilePath = uri,
                 changes = {
                     {
                         newText = "i💩\n",
@@ -164,7 +164,7 @@ describe("virtual document", function()
             host_document_version = 5,
             content = "i💩\nHello in the middle stuff\n",
             kind = razor.language_kinds.html,
-            path = full_path,
+            uri = uri,
             updates = {},
             change_event = {
                 listeners = {},
@@ -175,7 +175,7 @@ describe("virtual document", function()
             {
                 previousWasEmpty = false,
                 hostDocumentVersion = 6,
-                hostDocumentFilePath = full_path,
+                hostDocumentFilePath = uri,
                 changes = {
                     {
                         newText = "",
@@ -193,7 +193,7 @@ describe("virtual document", function()
             host_document_version = 6,
             content = "Hello in the middle stuff\n",
             kind = razor.language_kinds.html,
-            path = full_path,
+            uri = uri,
             updates = {},
             change_event = {
                 listeners = {},
@@ -214,7 +214,7 @@ describe("virtual document", function()
             {
                 previousWasEmpty = false,
                 hostDocumentVersion = 7,
-                hostDocumentFilePath = full_path,
+                hostDocumentFilePath = uri,
                 changes = {
                     {
                         newText = "",
@@ -233,7 +233,7 @@ describe("virtual document", function()
             host_document_version = 7,
             content = "Hello in the middle stuff\n",
             kind = razor.language_kinds.html,
-            path = full_path,
+            uri = uri,
             updates = {},
             change_event = {
                 listeners = { update_handler },

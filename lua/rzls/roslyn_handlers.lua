@@ -20,7 +20,7 @@ local function roslyn_razor_provideDynamicFileHandler(_err, result, _ctx, _confi
         ---@type razor.ProvideDynamicFileResponse
         local resp = {
             csharpDocument = {
-                uri = vd.path,
+                uri = vd.uri,
             },
             checksum = vd.checksum,
             checksumAlgorithm = vd.checksum_algorithm,
@@ -51,7 +51,7 @@ local function roslyn_razor_provideDynamicFileHandler(_err, result, _ctx, _confi
     ---@type razor.ProvideDynamicFileResponse
     local resp = {
         csharpDocument = {
-            uri = vd.path,
+            uri = vd.uri,
         },
         checksum = vd.checksum,
         checksumAlgorithm = vd.checksum_algorithm,

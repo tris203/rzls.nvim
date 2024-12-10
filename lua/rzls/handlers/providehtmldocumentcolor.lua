@@ -24,7 +24,7 @@ return function(_err, result, _ctx, _config)
     ---@type lsp.DocumentColorParams
     local document_color_params = {
         textDocument = {
-            uri = virtual_document.path,
+            uri = virtual_document.uri,
         },
     }
 

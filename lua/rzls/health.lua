@@ -21,7 +21,7 @@ M.check = function()
 
         for _, lang in pairs({ "csharp", "html" }) do
             local doc = docs[razor.language_kinds[lang]]
-            if doc and doc.buf and doc.path then
+            if doc and doc.buf and doc.uri then
                 vim.health.ok(
                     "  "
                         .. lang
@@ -30,7 +30,7 @@ M.check = function()
                         .. "] [v:"
                         .. doc.host_document_version
                         .. "]"
-                        .. doc.path
+                        .. doc.uri
                 )
             else
                 vim.health.ok("  " .. lang .. " virtual document not open")

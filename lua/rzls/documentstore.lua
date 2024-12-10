@@ -97,9 +97,9 @@ end
 ---@param language_kind razor.LanguageKind
 function M.update_vbuf(result, language_kind)
     M.register_vbufs_by_path(result.hostDocumentFilePath, false)
-    local uri = vim.uri_from_fname(result.hostDocumentFilePath)
+    local razor_uri = vim.uri_from_fname(result.hostDocumentFilePath)
     ---@type rzls.VirtualDocument
-    local virtual_document = virtual_documents[uri][language_kind]
+    local virtual_document = virtual_documents[razor_uri][language_kind]
 
     virtual_document.checksum = result.checksum
     virtual_document.checksum_algorithm = result.checksumAlgorithm or 1
@@ -118,7 +118,7 @@ function M.update_vbuf(result, language_kind)
         ---@type razor.DynamicFileUpdatedParams
         local params = {
             razorDocument = {
-                uri = virtual_documents[uri].path,
+                uri = virtual_documents[razor_uri].uri,
             },
         }
 
@@ -188,7 +188,7 @@ function M.get_virtual_document(uri, type, version)
     if virtual_document.host_document_version ~= version then
         Log.rzlsnvim = string.format(
             'Mismatch between virtual document version. Uri: "%s". Server: %d. Client: %d',
-            virtual_document.path,
+            virtual_document.uri,
             version,
             virtual_document.host_document_version
         )
