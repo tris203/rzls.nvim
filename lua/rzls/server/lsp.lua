@@ -24,6 +24,9 @@ local requests = {
             renameProvider = false,
             codeActionProvider = false,
         }
+
+        local original_rzls_server_capabilities = rzls_client.server_capabilities
+
         rzls_client.server_capabilities =
             vim.tbl_deep_extend("force", rzls_client.server_capabilities, rzls_disabled_capabilities)
 
@@ -43,12 +46,7 @@ local requests = {
                     full = true,
                     legend = rzls_client.server_capabilities.semanticTokensProvider.legend,
                 },
-                -- Same capabilities that rzls provides
-                codeActionProvider = {
-                    codeActionKinds = { "refactor.extract", "quickfix", "refactor" },
-                    resolveProvider = true,
-                    workDoneProgress = false,
-                },
+                codeActionProvider = original_rzls_server_capabilities.codeActionProvider,
             },
         }
     end,
