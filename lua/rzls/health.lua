@@ -6,19 +6,22 @@ M.check = function()
     vim.health.start("rzls.nvim report")
     -- make sure setup function parameters are ok
 
+    vim.health.start("document store")
     ---@type rzls.VirtualDocument<string, table<razor.LanguageKind, rzls.VirtualDocument>>
     local document_store = require("rzls.documentstore").get_docstore
     for razor_filename, docs in pairs(document_store) do
         vim.health.info("razor file: " .. razor_filename)
         if docs.buf then
-            vim.health.ok("razor virtual document found: " .. docs.buf .. " v: " .. docs.host_document_version)
+            vim.health.ok(
+                "razor virtual document open: [buf:" .. docs.buf .. "] [v:" .. docs.host_document_version .. "]"
+            )
         else
-            vim.health.error("razor virtual document not found")
+            vim.health.ok("razor virtual document not open")
         end
 
         for _, lang in pairs({ "csharp", "html" }) do
             local doc = docs[razor.language_kinds[lang]]
-            if doc and doc.buf and doc.path then
+            if doc and doc.buf and doc.uri then
                 vim.health.ok(
                     "  "
                         .. lang
@@ -27,11 +30,26 @@ M.check = function()
                         .. "] [v:"
                         .. doc.host_document_version
                         .. "]"
-                        .. doc.path
+                        .. doc.uri
                 )
             else
-                vim.health.error("  " .. lang .. " virtual document not found")
+                vim.health.ok("  " .. lang .. " virtual document not open")
             end
+        end
+    end
+
+    vim.health.start("lsp info")
+
+    local lsps = {
+        roslyn = vim.lsp.get_clients({ name = razor.lsp_names[razor.language_kinds.csharp] })[1],
+        rzls = vim.lsp.get_clients({ name = razor.lsp_names[razor.language_kinds.razor] })[1],
+        html = vim.lsp.get_clients({ name = razor.lsp_names[razor.language_kinds.html] })[1],
+    }
+    for name, client in pairs(lsps) do
+        if not client then
+            vim.health.error("lsp client " .. name .. " not found")
+        else
+            vim.health.ok("lsp client " .. name .. " found")
         end
     end
 

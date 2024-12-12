@@ -24,7 +24,7 @@ return function(_err, result, _ctx, _config)
     ---@type lsp.DocumentColorParams
     local document_color_params = {
         textDocument = {
-            uri = vim.uri_from_bufnr(virtual_document.buf),
+            uri = virtual_document.uri,
         },
     }
 

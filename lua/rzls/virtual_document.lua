@@ -4,8 +4,8 @@ local EventEmitter = require("rzls.eventemitter")
 local Log = require("rzls.log")
 
 ---@class rzls.VirtualDocument
----@field buf number
----@field path string
+---@field buf? number
+---@field uri string
 ---@field host_document_version number
 ---@field content string
 ---@field kind razor.LanguageKind
@@ -15,20 +15,39 @@ local Log = require("rzls.log")
 ---@field provisional_edit_at number|nil
 ---@field resolve_provisional_edit_at number|nil
 ---@field provisional_dot_position lsp.Position | nil
+---@field checksum string
+---@field checksum_algorithm number
+---@field encoding_code_page number | nil
+---@field updates VBufUpdate[]
 local VirtualDocument = {}
 
 VirtualDocument.__index = VirtualDocument
 
----@param bufnr integer
+---@param bufnr? integer
 ---@param kind razor.LanguageKind
+---@param uri? string
 ---@return rzls.VirtualDocument
-function VirtualDocument:new(bufnr, kind)
+function VirtualDocument:new(bufnr, kind, uri)
+    assert(kind, "kind is required")
+    if bufnr then
+        return setmetatable({
+            buf = bufnr,
+            host_document_version = 0,
+            content = "",
+            uri = vim.uri_from_bufnr(bufnr),
+            kind = kind,
+            updates = {},
+            change_event = EventEmitter:new(),
+        }, self)
+    end
+    assert(uri, "uri is required if bufnr is not provided")
     return setmetatable({
-        buf = bufnr,
+        buf = nil,
         host_document_version = 0,
         content = "",
-        path = vim.uri_from_bufnr(bufnr),
+        uri = uri,
         kind = kind,
+        updates = {},
         change_event = EventEmitter:new(),
     }, self)
 end
@@ -42,15 +61,25 @@ local function apply_change(content, change)
     return before .. change.newText .. after
 end
 
----@param result VBufUpdate
-function VirtualDocument:update_content(result)
-    for _, change in ipairs(vim.fn.reverse(result.changes)) do
-        self.content = apply_change(self.content, change)
+function VirtualDocument:update_content()
+    for i, details in ipairs(self.updates) do
+        for _, change in ipairs(vim.fn.reverse(details.changes)) do
+            self.content = apply_change(self.content, change)
+        end
+        self.host_document_version = details.hostDocumentVersion
+        self.updates[i] = nil
     end
 
-    self.host_document_version = result.hostDocumentVersion
-
     self.change_event:fire()
+end
+
+---update the bufnr of the virtual document
+---@param bufnr number
+---@return boolean
+function VirtualDocument:update_bufnr(bufnr)
+    self.buf = bufnr
+    assert(self.buf, "bufnr is nil")
+    return true
 end
 
 function VirtualDocument:ensure_content()
@@ -59,6 +88,7 @@ end
 
 ---@return vim.lsp.Client|nil
 function VirtualDocument:get_lsp_client()
+    ---TODO: virtual docs might not be real, so may not have a buf
     return vim.lsp.get_clients({ bufnr = self.buf, name = razor.lsp_names[self.kind] })[1]
 end
 
@@ -178,12 +208,16 @@ function VirtualDocument:language_query(position)
     assert(self.kind == razor.language_kinds.razor, "Can only map to document ranges for razor documents")
     local lsp = self:get_lsp_client()
     if not lsp then
-        Log.rzlsnvim = "[Language Query]LSP client not found for " .. self.path
+        Log.rzlsnvim = "[Language Query]LSP client not found for " .. self.uri
         return nil, vim.lsp.rpc_response_error(vim.lsp.protocol.ErrorCodes.InvalidRequest, "LSP client not found")
     end
+    --=TODO: Remove when 0.11 only
+    ---@diagnostic disable-next-line: param-type-mismatch
     local response = lsp.request_sync("razor/languageQuery", {
         position = position,
-        uri = vim.uri_from_bufnr(self.buf),
+        uri = self.uri,
+        --=TODO: Remove when 0.11 only
+        ---@diagnostic disable-next-line: param-type-mismatch
     }, nil, self.buf)
     if not response or response.err then
         Log.rzlsnvim = "Language Query Request failed: " .. vim.inspect(response and response.err)
@@ -204,17 +238,22 @@ function VirtualDocument:map_to_document_ranges(language_kind, ranges)
     assert(self.kind == razor.language_kinds.razor, "Can only map to document ranges for razor documents")
     local lsp = self:get_lsp_client()
     if not lsp then
-        Log.rzlsnvim = "[MapRange]LSP client not found for " .. self.path
+        Log.rzlsnvim = "[MapRange]LSP client not found for " .. self.uri
         return nil, vim.lsp.rpc_response_error(vim.lsp.protocol.ErrorCodes.InvalidRequest, "LSP client not found")
     end
+
+    --=TODO: Remove when 0.11 only
+    ---@diagnostic disable-next-line: param-type-mismatch
     local response = lsp.request_sync("razor/mapToDocumentRanges", {
-        razorDocumentUri = vim.uri_from_bufnr(self.buf),
+        razorDocumentUri = self.uri,
         kind = language_kind,
         projectedRanges = ranges,
+        --=TODO: Remove when 0.11 only
+        ---@diagnostic disable-next-line: param-type-mismatch
     }, nil, self.buf)
     if not response or response.err then
         Log.rzlsnvim = "Map Document Range Request failed for "
-            .. self.path
+            .. self.uri
             .. ": "
             .. vim.inspect(response and response.err)
         return nil,
@@ -237,12 +276,14 @@ end
 function VirtualDocument:lsp_request(method, params, buf)
     local lsp = self:get_lsp_client()
     if not lsp then
-        Log.rzlsnvim = "[" .. method .. "]LSP client not found for " .. self.path
+        Log.rzlsnvim = "[" .. method .. "]LSP client not found for " .. self.uri
         return nil, vim.lsp.rpc_response_error(vim.lsp.protocol.ErrorCodes.InvalidRequest, "LSP client not found")
     end
+    --=TODO: Remove when 0.11 only
+    ---@diagnostic disable-next-line: param-type-mismatch
     local result = lsp.request_sync(method, params, nil, buf or self.buf)
     if not result or result.err then
-        Log.rzlsnvim = "LSP request failed for " .. self.path .. ": " .. vim.inspect(result and result.err)
+        Log.rzlsnvim = "LSP request failed for " .. self.uri .. ": " .. vim.inspect(result and result.err)
         return nil,
             result and result.err or vim.lsp.rpc_response_error(
                 vim.lsp.protocol.ErrorCodes.InvalidRequest,

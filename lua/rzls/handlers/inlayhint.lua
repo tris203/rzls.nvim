@@ -40,7 +40,7 @@ return function(_err, result, _ctx, _config)
     end
     local inlay_hint_params = vim.tbl_deep_extend("force", result, {
         textDocument = {
-            uri = vim.uri_from_bufnr(virtual_document.buf),
+            uri = virtual_document.uri,
         },
         range = result.projectedRange,
     })
