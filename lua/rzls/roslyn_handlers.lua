@@ -15,7 +15,12 @@ local function roslyn_razor_provideDynamicFileHandler(_err, result, _ctx, _confi
     local rvd = documentstore.get_virtual_document(result.razorDocument.uri, razor.language_kinds.razor, "any")
 
     if not vd or not rvd then
-        return nil, vim.lsp.rpc.rpc_response_error(-32600, "Could not find requested document")
+        documentstore.register_vbufs_by_path(vim.uri_to_fname(result.razorDocument.uri), false)
+        vd = documentstore.get_virtual_document(result.razorDocument.uri, razor.language_kinds.csharp, "any")
+        rvd = documentstore.get_virtual_document(result.razorDocument.uri, razor.language_kinds.razor, "any")
+        if not vd or not rvd then
+            return nil, vim.lsp.rpc.rpc_response_error(-32600, "Could not find requested document")
+        end
     end
 
     if result.fullText then
