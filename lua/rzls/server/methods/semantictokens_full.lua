@@ -5,7 +5,10 @@ local au = vim.api.nvim_create_augroup("rzls_semantic_tokens", {})
 vim.api.nvim_create_autocmd("WinScrolled", {
     group = au,
     callback = function(ev)
-        vim.lsp.semantic_tokens.force_refresh(ev.buf)
+        local ft = vim.api.nvim_get_option_value("filetype", { buf = ev.buf })
+        if ft == "razor" then
+            vim.lsp.semantic_tokens.force_refresh(ev.buf)
+        end
     end,
 })
 

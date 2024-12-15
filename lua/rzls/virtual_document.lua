@@ -17,7 +17,7 @@ local Log = require("rzls.log")
 ---@field provisional_dot_position lsp.Position | nil
 ---@field checksum string
 ---@field checksum_algorithm number
----@field encoding_code_page number | nil
+---@field encoding_code_page number
 ---@field updates VBufUpdate[]
 local VirtualDocument = {}
 
@@ -70,7 +70,30 @@ function VirtualDocument:update_content()
         self.updates[i] = nil
     end
 
+    if self.buf then
+        local buf_eol = utils.buffer_eol(self.buf)
+        local lines = vim.fn.split(self.content, buf_eol, true)
+        vim.api.nvim_buf_set_lines(self.buf, 0, -1, false, lines)
+    end
+
     self.change_event:fire()
+end
+
+---@return VBufUpdate[] edits
+---@return string original_checksum
+---@return number original_checksum_algorithm
+---@return number|vim.NIL original_encoding_code_page
+function VirtualDocument:apply_edits()
+    local original_checksum = self.checksum or ""
+    local original_checksum_algorithm = self.checksum_algorithm or 1
+    local original_encoding_code_page = self.encoding_code_page or vim.NIL
+
+    local edits = vim.deepcopy(self.updates)
+    if not vim.tbl_isempty(edits) then
+        self:update_content()
+    end
+
+    return edits, original_checksum, original_checksum_algorithm, original_encoding_code_page
 end
 
 ---update the bufnr of the virtual document

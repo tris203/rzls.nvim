@@ -7,9 +7,7 @@ describe("virtual document", function()
     local vd
     local path = "tests/rzls/fixtures/vdtest.razor__virtual.html"
     local uri = "file://" .. vim.loop.cwd() .. "/" .. path
-    vim.cmd.edit({ args = { path } })
-    local ls = vim.fn.getbufinfo({ buflisted = 1 })
-    local bufnr = ls[1].bufnr
+    local bufnr = vim.uri_to_bufnr(uri)
 
     it("create virtual document", function()
         vd = virtual_document:new(bufnr, razor.language_kinds.html)
@@ -240,12 +238,9 @@ describe("virtual document", function()
             },
         }, vd)
 
-        -- Schedule resuming to give a change to the `update_handler` to be called
-        local co = coroutine.running()
-        vim.schedule(function()
-            coroutine.resume(co)
-        end)
-        coroutine.yield()
+        vim.wait(10000, function()
+            return update_handler_called
+        end, 250)
 
         eq(true, update_handler_called)
 
