@@ -3,6 +3,9 @@ local utils = require("rzls.utils")
 local VirtualDocument = require("rzls.virtual_document")
 local Log = require("rzls.log")
 
+---@type razor.DynamicFileUpdatedParams[]
+local roslyn_notify_queue = {}
+
 local M = {}
 
 ---@type rzls.VirtualDocument<string, table<razor.LanguageKind, rzls.VirtualDocument>>
@@ -101,36 +104,49 @@ function M.update_vbuf(result, language_kind)
     ---@type rzls.VirtualDocument
     local virtual_document = virtual_documents[razor_uri][language_kind]
 
+    if result.previousWasEmpty and virtual_document.content ~= "" then
+        virtual_document.content = ""
+    end
+
+    if virtual_document.buf then
+        virtual_document:remove_provisional_dot()
+        if not vim.tbl_isempty(virtual_document.updates) then
+            virtual_document:update_content()
+        end
+
+        table.insert(virtual_document.updates, result)
+        virtual_document:update_content()
+    else
+        --TODO: do we need to fire here?
+        virtual_document.change_event:fire()
+        if language_kind == razor.language_kinds.csharp then
+            table.insert(virtual_document.updates, result)
+            local roslyn = virtual_document:get_lsp_client()
+            ---@type razor.DynamicFileUpdatedParams
+            local params = {
+                razorDocument = {
+                    uri = virtual_documents[razor_uri].uri,
+                },
+            }
+            table.insert(roslyn_notify_queue, params)
+
+            if not roslyn then
+                ---NOTE:there is no roslyn to notify so we will do it later
+                return
+            end
+
+            for i, notify in ipairs(roslyn_notify_queue) do
+                --=TODO: Remove when 0.11 only
+                ---@diagnostic disable-next-line: param-type-mismatch
+                roslyn.notify(razor.notification.razor_dynamicFileInfoChanged, notify)
+                roslyn_notify_queue[i] = nil
+            end
+        end
+    end
+
     virtual_document.checksum = result.checksum
     virtual_document.checksum_algorithm = result.checksumAlgorithm or 1
     virtual_document.encoding_code_page = result.encodingCodePage
-    table.insert(virtual_document.updates, result)
-    virtual_document:update_content()
-
-    if virtual_document.buf then
-        local buf_eol = utils.buffer_eol(virtual_document.buf)
-        local lines = vim.fn.split(virtual_document.content, buf_eol, true)
-        vim.api.nvim_buf_set_lines(virtual_document.buf, 0, -1, false, lines)
-    end
-
-    if language_kind == razor.language_kinds.csharp and not virtual_document.buf then
-        local roslyn = virtual_document:get_lsp_client()
-        ---@type razor.DynamicFileUpdatedParams
-        local params = {
-            razorDocument = {
-                uri = virtual_documents[razor_uri].uri,
-            },
-        }
-
-        if not roslyn then
-            ---TODO: is this right? there is no roslyn to notify
-            return
-        end
-
-        --=TODO: Remove when 0.11 only
-        ---@diagnostic disable-next-line: param-type-mismatch
-        roslyn.notify(razor.notification.razor_dynamicFileInfoChanged, params)
-    end
 end
 
 ---Refreshes parent views of the given virtual document

@@ -55,7 +55,7 @@ local M = {}
 ---@field updates? razor.DynamicFileUpdate[]
 ---@field checksum string
 ---@field checksumAlgorithm number
----@field enodingCodePage number
+---@field encodingCodePage number | vim.NIL
 
 ---@class razor.DynamicFileUpdate
 ---@field edits Change[]

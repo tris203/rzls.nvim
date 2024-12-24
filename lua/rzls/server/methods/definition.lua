@@ -54,12 +54,14 @@ return function(params)
         elseif v.uri:match(razor.virtual_suffixes.csharp .. "$") then
             local mapped_loc = rvd:map_to_document_ranges(language_query_response.kind, { v.range })
             if mapped_loc and mapped_loc.ranges[1] then
-                ---@type lsp.Definition
-                local data = {
-                    uri = params.textDocument.uri,
-                    range = mapped_loc.ranges[1],
-                }
-                table.insert(response, data)
+                if mapped_loc.ranges[1].start.line >= 0 and mapped_loc.ranges[1]["end"].line >= 0 then
+                    ---@type lsp.Definition
+                    local data = {
+                        uri = params.textDocument.uri,
+                        range = mapped_loc.ranges[1],
+                    }
+                    table.insert(response, data)
+                end
             end
         else
             table.insert(response, v)
