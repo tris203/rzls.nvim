@@ -55,7 +55,7 @@ return function(err, result, _ctx, _config)
 
     local edits = {}
     for _, html_edit in ipairs(range_formatting_response) do
-        vim.list_extend(edits, format.compute_minimal_edits(virtual_document:lines(), html_edit))
+        vim.list_extend(edits, format.compute_minimal_edits(lines, html_edit))
     end
 
     return { edits = edits }

@@ -37,7 +37,6 @@ function M.generate_table(source, target)
             end
         end
     end
-
     return lcs
 end
 
@@ -57,8 +56,8 @@ end
 ---@param target string
 ---@return rzls.lcs.Edit[]
 function M.diff(source, target)
-    local lcs = M.generate_table(source, target)
     local src_idx, trt_idx = #source + 1, #target + 1
+    local lcs
 
     ---@type rzls.lcs.Edit[]
     local edits = {}
@@ -89,18 +88,21 @@ function M.diff(source, target)
                     kind = edit_kind.unchanged,
                     text = string.char(src_char),
                 }
-            elseif lcs[src_idx - 1][trt_idx] <= lcs[src_idx][trt_idx - 1] then
-                trt_idx = trt_idx - 1
-                edits[edit_idx] = {
-                    kind = edit_kind.addition,
-                    text = string.char(trt_char),
-                }
             else
-                src_idx = src_idx - 1
-                edits[edit_idx] = {
-                    kind = edit_kind.removal,
-                    text = string.char(src_char),
-                }
+                lcs = lcs or M.generate_table(source, target)
+                if lcs[src_idx - 1][trt_idx] <= lcs[src_idx][trt_idx - 1] then
+                    trt_idx = trt_idx - 1
+                    edits[edit_idx] = {
+                        kind = edit_kind.addition,
+                        text = string.char(trt_char),
+                    }
+                else
+                    src_idx = src_idx - 1
+                    edits[edit_idx] = {
+                        kind = edit_kind.removal,
+                        text = string.char(src_char),
+                    }
+                end
             end
         end
         edit_idx = edit_idx + 1
