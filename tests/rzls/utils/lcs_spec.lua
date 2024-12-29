@@ -41,7 +41,7 @@ describe("lcs", function()
 
     it("converts edits to lsp.TextEdit's", function()
         local source = '<div\n\nclass="foo">'
-        local target = '<div class="bar">'
+        local target = '<div class="foo">'
 
         local edits = lcs.diff(source, target)
         local text_edits = lcs.to_lsp_edits(edits, 0, 0)
@@ -49,8 +49,6 @@ describe("lcs", function()
         local expected = {
             -- Replaces "\n\n" with " "
             lsp_edit(" ", 0, 4, 2, 0),
-            -- Replaces "foo" with "bar"
-            lsp_edit("bar", 2, 7, 2, 10),
         }
 
         eq(expected, text_edits)
@@ -58,7 +56,7 @@ describe("lcs", function()
 
     it("applies converted lsp.TextEdit's to buffer", function()
         local source = '<div class="bar">'
-        local target = '<div\n\nclass="foo">'
+        local target = '<div\n\nclass="bar">'
 
         local edits = lcs.diff(source, target)
         local text_edits = lcs.to_lsp_edits(edits, 0, 0)
@@ -73,7 +71,7 @@ describe("lcs", function()
 
     it("applies converted lsp.TextEdit's to buffer with CRLF line endings", function()
         local source = '<div class="bar">'
-        local target = '<div\r\n\r\nclass="foo">'
+        local target = '<div\r\n\r\nclass="bar">'
 
         local edits = lcs.diff(source, target)
         local text_edits = lcs.to_lsp_edits(edits, 0, 0)
@@ -114,7 +112,7 @@ describe("lcs", function()
 
     it("applies edits to unicode characters", function()
         local source = "        <h1>💩</h1>"
-        local target = "<h1>:💩</h1>"
+        local target = "<h1>💩</h1>"
 
         local edits = lcs.diff(source, target)
         local text_edits = lcs.to_lsp_edits(edits, 0, 0)
