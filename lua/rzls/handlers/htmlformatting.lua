@@ -32,6 +32,14 @@ return function(err, result, _ctx, _config)
     local line_count = #lines
     local last_line = lines[line_count]
 
+    while last_line == "" do
+        -- Blankline at the end of the file causes the whole file to need to diffed which is slow
+        -- https://github.com/tris203/rzls.nvim/issues/41
+        line_count = line_count - 1
+        last_line = lines[line_count]
+        table.remove(lines)
+    end
+
     ---@type lsp.TextEdit[]?
     local range_formatting_response =
         virtual_document:lsp_request(vim.lsp.protocol.Methods.textDocument_rangeFormatting, {
