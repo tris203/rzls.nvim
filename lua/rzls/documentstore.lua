@@ -75,16 +75,10 @@ function M.register_vbufs_by_path(current_file, ensure_open)
     end
 
     local html_uri = current_file .. razor.virtual_suffixes["html"]
+    --NOTE: We cant lazy load html
     if not virtual_documents[current_file][razor.language_kinds.html] then
-        local opened = document_is_open(html_uri)
-        if not opened and not ensure_open then
-            virtual_documents[current_file][razor.language_kinds.html] =
-                VirtualDocument:new(nil, razor.language_kinds.html, html_uri)
-        else
-            local buf = vim.uri_to_bufnr(html_uri)
-            virtual_documents[current_file][razor.language_kinds.html] =
-                VirtualDocument:new(buf, razor.language_kinds.html)
-        end
+        local buf = vim.uri_to_bufnr(html_uri)
+        virtual_documents[current_file][razor.language_kinds.html] = VirtualDocument:new(buf, razor.language_kinds.html)
     end
 
     if ensure_open then
