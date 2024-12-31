@@ -105,6 +105,16 @@ function M.update_vbuf(result, language_kind)
 
     assert(virtual_document, "received update for non-existent virtual document")
 
+    if not virtual_document then
+        Log.rzlsnvim =
+            string.format("Update recieved for unknown document: Uri: %s. LanguageKind: %d", razor_uri, language_kind)
+        assert(
+            false,
+            string.format("Update recieved for unknown document: Uri: %s. LanguageKind: %d", razor_uri, language_kind)
+        )
+        return
+    end
+
     if result.previousWasEmpty and virtual_document.content ~= "" then
         virtual_document.content = ""
     end
@@ -222,9 +232,9 @@ function M.get_razor_document_by_bufnr(bufnr)
 end
 
 local pipe_name
----@param client vim.lsp.Client
-function M.initialize(client)
-    pipe_name = utils.uuid()
+---@param rzls_client_id number
+function M.initialize(rzls_client_id)
+    pipe_name = pipe_name or utils.uuid()
 
     local function initialize_roslyn()
         local roslyn_client = vim.lsp.get_clients({ name = "roslyn" })[1]
@@ -235,9 +245,12 @@ function M.initialize(client)
             pipeName = pipe_name,
         })
 
+        local rzls_client = vim.lsp.get_client_by_id(rzls_client_id)
+        assert(rzls_client, "rzls client not found")
+
         --=TODO: Remove when 0.11 only
         ---@diagnostic disable-next-line: param-type-mismatch
-        client.notify(razor.notification.razor_namedPipeConnect, {
+        rzls_client.notify(razor.notification.razor_namedPipeConnect, {
             pipeName = pipe_name,
         })
     end
