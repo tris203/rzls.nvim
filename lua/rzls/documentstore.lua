@@ -119,9 +119,9 @@ function M.update_vbuf(result, language_kind)
     else
         --TODO: do we need to fire here?
         virtual_document.change_event:fire()
+        table.insert(virtual_document.updates, result)
+        local roslyn = virtual_document:get_lsp_client()
         if language_kind == razor.language_kinds.csharp then
-            table.insert(virtual_document.updates, result)
-            local roslyn = virtual_document:get_lsp_client()
             ---@type razor.DynamicFileUpdatedParams
             local params = {
                 razorDocument = {
