@@ -16,8 +16,8 @@ M.edit_kind = {
 ---@param source string
 ---@param target string
 function M.generate_table(source, target)
-    local n = source:len() + 1
-    local m = target:len() + 1
+    local n = #source + 1
+    local m = #target + 1
 
     ---@type integer[][]
     local lcs = {}
@@ -28,18 +28,15 @@ function M.generate_table(source, target)
         end
     end
 
-    for i = 1, n do
-        for j = 1, m do
-            if i == 1 or j == 1 then
-                lcs[i][j] = 0
-            elseif source:sub(i - 1, i - 1) == target:sub(j - 1, j - 1) then
+    for i = 2, n do
+        for j = 2, m do
+            if source:byte(i - 1) == target:byte(j - 1) then
                 lcs[i][j] = 1 + lcs[i - 1][j - 1]
             else
                 lcs[i][j] = math.max(lcs[i - 1][j], lcs[i][j - 1])
             end
         end
     end
-
     return lcs
 end
 
@@ -59,47 +56,56 @@ end
 ---@param target string
 ---@return rzls.lcs.Edit[]
 function M.diff(source, target)
-    local lcs = M.generate_table(source, target)
-
-    local src_idx = source:len() + 1
-    local trt_idx = target:len() + 1
+    local src_idx, trt_idx = #source + 1, #target + 1
+    local lcs
 
     ---@type rzls.lcs.Edit[]
     local edits = {}
+    local edit_idx = 1
 
-    while src_idx ~= 1 or trt_idx ~= 1 do
+    local edit_kind = M.edit_kind
+
+    while src_idx > 1 or trt_idx > 1 do
         if src_idx == 1 then
-            table.insert(edits, {
-                kind = M.edit_kind.addition,
-                text = target:sub(trt_idx - 1, trt_idx - 1),
-            })
             trt_idx = trt_idx - 1
+            edits[edit_idx] = {
+                kind = edit_kind.addition,
+                text = string.char(string.byte(target, trt_idx)),
+            }
         elseif trt_idx == 1 then
-            table.insert(edits, {
-                kind = M.edit_kind.removal,
-                text = source:sub(src_idx - 1, src_idx - 1),
-            })
             src_idx = src_idx - 1
-        elseif source:sub(src_idx - 1, src_idx - 1) == target:sub(trt_idx - 1, trt_idx - 1) then
-            table.insert(edits, {
-                kind = M.edit_kind.unchanged,
-                text = source:sub(src_idx - 1, src_idx - 1),
-            })
-            src_idx = src_idx - 1
-            trt_idx = trt_idx - 1
-        elseif lcs[src_idx - 1][trt_idx] <= lcs[src_idx][trt_idx - 1] then
-            table.insert(edits, {
-                kind = M.edit_kind.addition,
-                text = target:sub(trt_idx - 1, trt_idx - 1),
-            })
-            trt_idx = trt_idx - 1
+            edits[edit_idx] = {
+                kind = edit_kind.removal,
+                text = string.char(string.byte(source, src_idx)),
+            }
         else
-            table.insert(edits, {
-                kind = M.edit_kind.removal,
-                text = source:sub(src_idx - 1, src_idx - 1),
-            })
-            src_idx = src_idx - 1
+            local src_char = string.byte(source, src_idx - 1)
+            local trt_char = string.byte(target, trt_idx - 1)
+
+            if src_char == trt_char then
+                src_idx, trt_idx = src_idx - 1, trt_idx - 1
+                edits[edit_idx] = {
+                    kind = edit_kind.unchanged,
+                    text = string.char(src_char),
+                }
+            else
+                lcs = lcs or M.generate_table(source, target)
+                if lcs[src_idx - 1][trt_idx] <= lcs[src_idx][trt_idx - 1] then
+                    trt_idx = trt_idx - 1
+                    edits[edit_idx] = {
+                        kind = edit_kind.addition,
+                        text = string.char(trt_char),
+                    }
+                else
+                    src_idx = src_idx - 1
+                    edits[edit_idx] = {
+                        kind = edit_kind.removal,
+                        text = string.char(src_char),
+                    }
+                end
+            end
         end
+        edit_idx = edit_idx + 1
     end
 
     return reverse_table(edits)

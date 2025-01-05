@@ -307,6 +307,7 @@ function VirtualDocument:lsp_request(method, params, buf)
     local result = lsp.request_sync(method, params, nil, buf or self.buf)
     if not result or result.err then
         Log.rzlsnvim = "LSP request failed for " .. self.uri .. ": " .. vim.inspect(result and result.err)
+        Log.rzlsnvim = vim.inspect({ method = method, params = params })
         return nil,
             result and result.err or vim.lsp.rpc_response_error(
                 vim.lsp.protocol.ErrorCodes.InvalidRequest,
