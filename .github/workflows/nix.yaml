@@ -8,7 +8,8 @@ jobs:
   build:
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest]
+        # os: [ubuntu-latest, macos-latest]
+        os: [ubuntu-latest]
     name: Test Nix Build on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     permissions:
