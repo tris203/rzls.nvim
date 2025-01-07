@@ -30,21 +30,21 @@
       in buildDotnetModule rec {
         inherit pname dotnet-sdk dotnet-runtime;
 
-        vsVersion = "2.60.26";
+        vsVersion = "2.61";
         src = fetchFromGitHub {
           owner = "dotnet";
           repo = "razor";
           # Need a better way to get this commit hash.
           # As the build happens off github on Microsoft Azure DevOps and isn't
           # related to any particular tag/branch.
-          rev = "39b22b62f882d716cba4d777180d4d01dde1726b";
-          hash = "sha256-nLy+h+kW310WxRqvNUSQFVftCYnJzj/BEVlKpbh8eSI=";
+          rev = "dd64bf78c16a7e8fa1900da060100e9338383dea";
+          hash = "sha256-C5/Mc5HxxAVGLO6IPhyyBNLcjvjmF8sKg1KpIdN0/KQ=";
         };
 
         # versioned independently from vscode-csharp
         # "roslyn" in here:
         # https://github.com/dotnet/vscode-csharp/blob/main/package.json
-        version = "9.0.0-preview.24605.1";
+        version = "9.0.0-preview.25052.3";
         projectFile = "src/Razor/src/${project}/${project}.csproj";
         useDotnetFromEnv = true;
         nugetDeps = ./deps.json;
