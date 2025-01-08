@@ -2,6 +2,17 @@ local documentstore = require("rzls.documentstore")
 local razor = require("rzls.razor")
 local Log = require("rzls.log")
 
+local function refresh_roslyn_diagnostics(client_id)
+    -- we need time for the lsp to process the changes
+    local buffers = vim.lsp.get_buffers_by_client_id(client_id)
+    for _, buf in ipairs(buffers) do
+        local uri = vim.uri_from_bufnr(buf)
+        if not uri:match(razor.virtual_suffixes.csharp .. "$") then
+            require("rzls.refresh").diagnostics.add(buf)
+        end
+    end
+end
+
 local function ensure_rzls_started()
     if not require("rzls").rzls_client_id then
         local rzls_client_id = (function()
@@ -21,11 +32,11 @@ end
 
 ---@param _err lsp.ResponseError
 ---@param result razor.ProvideDynamicFileParams
----@param _ctx lsp.HandlerContext
+---@param ctx lsp.HandlerContext
 ---@param _config? table
 ---@return razor.ProvideDynamicFileResponse|nil
 ---@return lsp.ResponseError|nil
-return function(_err, result, _ctx, _config)
+return function(_err, result, ctx, _config)
     ensure_rzls_started()
     if result.razorDocument == nil then
         Log.rzlsnvim = "Razor document was missing from roslyn request"
@@ -43,6 +54,8 @@ return function(_err, result, _ctx, _config)
             return nil, vim.lsp.rpc.rpc_response_error(-32600, "Could not find requested document")
         end
     end
+
+    refresh_roslyn_diagnostics(ctx.client_id)
 
     if result.fullText then
         ---@type razor.ProvideDynamicFileResponse

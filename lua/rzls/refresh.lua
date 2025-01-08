@@ -73,9 +73,11 @@ local function refresh_diagnostics(self)
                 Log.rzlsnvim = string.format("Refreshing diagnostics for buffer: %d", bufnr)
                 vim.lsp.util._refresh(vim.lsp.protocol.Methods.textDocument_diagnostic, { bufnr = bufnr })
             end
-            local rvd = documentstore.get_razor_document_by_bufnr(bufnr)
-            Log.rzlsnvim = string.format("Refreshing diagnostics for razor buffer: %d", rvd.buf)
-            vim.lsp.util._refresh(vim.lsp.protocol.Methods.textDocument_diagnostic, { bufnr = rvd.buf })
+            local ok, rvd = pcall(documentstore.get_razor_document_by_bufnr, bufnr)
+            if ok then
+                Log.rzlsnvim = string.format("Refreshing diagnostics for razor buffer: %d", rvd.buf)
+                vim.lsp.util._refresh(vim.lsp.protocol.Methods.textDocument_diagnostic, { bufnr = rvd.buf })
+            end
             self[bufnr] = nil
         end
     end
