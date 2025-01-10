@@ -187,13 +187,6 @@ return {
 }
 ```
 
-### Inlay Hints
-
-Inlay hints are provided in razor documents via the roslyn LSP.
-
-To enable, you must enable inlay hinting in nvim config `:h vim.lsp.inlay_hint.enable()`
-and also configure `csharp|inlay_hint_*` options in [roslyn.nvim](https://github.com/seblj/roslyn.nvim)
-
 ## Additional Configuration
 
 ### Telescope
