@@ -79,10 +79,6 @@ You can pass a configuration table to the `setup` function. The configuration op
 - `path`: The path to the rzls executable if not installed via mason. If you
   have installed via mason you can omit this option.
 
-```lua
-require('rzls').setup({})
-```
-
 You also must configure the [`roslyn.nvim`](https://github.com/seblj/roslyn.nvim) plugin
 to communicate with the razor LSP. To do so, you must pass the handlers defined in the
 `rzls.roslyn_handlers` module:
