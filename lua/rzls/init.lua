@@ -68,9 +68,8 @@ function M.setup(config)
                     "true",
                 },
                 on_init = function(client, _initialize_result)
-                    ---@module "roslyn"
-                    local roslyn_pipes = require("roslyn.server").get_pipes()
-                    if roslyn_pipes[root_dir] then
+                    ---@diagnostic disable-next-line: undefined-field
+                    if _G.roslyn_initialized == true then
                         documentstore.initialize(client)
                     else
                         vim.api.nvim_create_autocmd("User", {
