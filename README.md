@@ -86,6 +86,7 @@ to communicate with the razor LSP. To do so, you must pass the handlers defined 
 ```lua
 require('roslyn').setup {
   args = {
+    '--stdio',
     '--logLevel=Information',
     '--extensionLogDirectory=' .. vim.fs.dirname(vim.lsp.get_log_path()),
     '--razorSourceGenerator=' .. vim.fs.joinpath(
@@ -134,6 +135,7 @@ return {
     config = function()
       require('roslyn').setup {
         args = {
+          '--stdio',
           '--logLevel=Information',
           '--extensionLogDirectory=' .. vim.fs.dirname(vim.lsp.get_log_path()),
           '--razorSourceGenerator='
