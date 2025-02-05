@@ -19,9 +19,14 @@ local requests = {
         end
 
         ---disable in rzls the things that aftershave will directly
+        ---@type lsp.ServerCapabilities
         local rzls_disabled_capabilities = {
             renameProvider = false,
+            codeActionProvider = false,
         }
+
+        local original_rzls_server_capabilities = rzls_client.server_capabilities
+
         rzls_client.server_capabilities =
             vim.tbl_deep_extend("force", rzls_client.server_capabilities, rzls_disabled_capabilities)
 
@@ -41,6 +46,7 @@ local requests = {
                     full = true,
                     legend = rzls_client.server_capabilities.semanticTokensProvider.legend,
                 },
+                codeActionProvider = original_rzls_server_capabilities.codeActionProvider,
             },
         }
     end,
@@ -52,6 +58,8 @@ local requests = {
     [vim.lsp.protocol.Methods.textDocument_signatureHelp] = require("rzls.server.methods.signaturehelp"),
     [vim.lsp.protocol.Methods.textDocument_documentHighlight] = require("rzls.server.methods.documenthighlight"),
     [vim.lsp.protocol.Methods.textDocument_semanticTokens_full] = require("rzls.server.methods.semantictokens_full"),
+    [vim.lsp.protocol.Methods.textDocument_codeAction] = require("rzls.server.methods.codeaction"),
+    [vim.lsp.protocol.Methods.codeAction_resolve] = require("rzls.server.methods.codeactionresolve"),
 }
 
 local noops = {
