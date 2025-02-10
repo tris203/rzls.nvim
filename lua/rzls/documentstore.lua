@@ -223,8 +223,8 @@ function M.get_virtual_document(uri, type, version)
 end
 
 local pipe_name
----@param rzls_client_id number
-function M.initialize(rzls_client_id)
+---@param rzls_client vim.lsp.Client
+function M.initialize(rzls_client)
     pipe_name = pipe_name or utils.uuid()
 
     local function initialize_roslyn()
@@ -236,7 +236,7 @@ function M.initialize(rzls_client_id)
             pipeName = pipe_name,
         })
 
-        local rzls_client = vim.lsp.get_client_by_id(rzls_client_id)
+        -- local rzls_client = vim.lsp.get_client_by_id(rzls_client.id)
         assert(rzls_client, "rzls client not found")
 
         --=TODO: Remove when 0.11 only
