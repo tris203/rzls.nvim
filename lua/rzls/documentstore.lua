@@ -59,7 +59,6 @@ function M.register_vbufs_by_path(current_file, ensure_open)
                 VirtualDocument:new(nil, razor.language_kinds.csharp, csharp_uri)
         else
             local buf = vim.uri_to_bufnr(csharp_uri)
-            vim.api.nvim_set_option_value("filetype", "cs", { buf = buf })
             virtual_documents[current_file][razor.language_kinds.csharp] =
                 VirtualDocument:new(buf, razor.language_kinds.csharp)
         end
@@ -251,12 +250,14 @@ vim.api.nvim_create_autocmd("LspAttach", {
         if client.name == razor.lsp_names[razor.language_kinds.csharp] then
             if uri:match(razor.virtual_suffixes.csharp .. "$") then
                 vim.api.nvim_set_option_value("buftype", "nowrite", { buf = args.buf })
+                vim.api.nvim_set_option_value("buflisted", false, { buf = args.buf })
             end
         end
 
         if client.name == razor.lsp_names[razor.language_kinds.html] then
             if uri:match(razor.virtual_suffixes.html .. "$") then
                 vim.api.nvim_set_option_value("buftype", "nowrite", { buf = args.buf })
+                vim.api.nvim_set_option_value("buflisted", false, { buf = args.buf })
             end
         end
     end,
