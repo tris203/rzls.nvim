@@ -100,6 +100,7 @@ M.notification = {
     razor_provideDynamicFileInfo = "razor/provideDynamicFileInfo",
 }
 
+
 ---@type table<string, vim.api.keyset.highlight>
 --TODO: Extend this to cover all razor highlights
 -- https://github.com/dotnet/vscode-csharp/blob/802be7399e947ab82f2a69780d43a57c1d5be6aa/package.json#L4761
@@ -116,6 +117,33 @@ local razor_highlights = {
     ["@lsp.type.variable.razor"] = { link = "@variable" },
     ["@lsp.type.razorComponentElement.razor"] = { link = "@lsp.type.class" },
     ["@lsp.type.razorTagHelperElement.razor"] = { link = "@lsp.type.class" },
+    ["@lsp.type.stringVerbatim.razor"] = { link = "@string" },
+    ["@lsp.type.delegate.razor"] = { link = "@variable" },
+    ["@lsp.type.constant.razor"] = { link = "@variable" },
+    ["@lsp.type.razorComponentAttribute.razor"] = { link = "@lsp.type.property" },
+
+    --Regex in string being passed to something like the Regex.Match()
+    ["@lsp.type.regexComment.razor"] = { link = "Comment" },
+    ["@lsp.type.regexCharacterClass.razor"] = { link = "@string.escape.regex" },
+    ["@lsp.type.regexAnchor.razor"] = { link = "@punctuation.delimiter.regex" },
+    ["@lsp.type.regexQuantifier.razor"] = { link = "@punctuation.operator.regex" },
+    ["@lsp.type.regexGrouping.razor"] = { link = "@punctuation.bracket.regex" },
+    ["@lsp.type.regexAlternation.razor"] = { link = "@operator.regex" },
+    ["@lsp.type.regexText.razor"] = { link = "@string" },
+    ["@lsp.type.regexSelfEscapedCharacter.razor"] = { link = "@string.regexp.regex" },
+    ["@lsp.type.regexOtherEscape.razor"] = { link = "@string.regexp.regex" },
+
+    --json in strings highlighting
+    ["@lsp.type.jsonComment.razor"] = { link = "Comment" },
+    ["@lsp.type.jsonNumber.razor"] = { link = "@number.json" },
+    ["@lsp.type.jsonString.razor"] = { link = "@string.json" },
+    ["@lsp.type.jsonKeyword.razor"] = { link = "Keyword" },
+    ["@lsp.type.jsonText.razor"] = { link = "@string.json" },
+    ["@lsp.type.jsonOperator.razor"] = { link = "@punctuation.operator" },
+    ["@lsp.type.jsonPunctuation.razor"] = { link = "@punctuation.delimiter.json" },
+    ["@lsp.type.jsonArray.razor"] = { link = "@punctuation.bracket.json" },
+    ["@lsp.type.jsonObject.razor"] = { link = "@punctuation.bracket.json" },
+    ["@lsp.type.jsonPropertyName.razor"] = { link = "@property.json" },
 }
 
 M.apply_highlights = function()
