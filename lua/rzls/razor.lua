@@ -114,12 +114,12 @@ local razor_highlights = {
     ["@lsp.type.razorDirectiveAttribute"] = { link = "Keyword" },
     ["@lsp.type.field"] = { link = "@variable" },
     ["@lsp.type.variable.razor"] = { link = "@variable" },
-    ["@lsp.type.razorComponentElement.razor"] = { link = "@lsp.type.class" },
-    ["@lsp.type.razorTagHelperElement.razor"] = { link = "@lsp.type.class" },
+    ["@lsp.type.razorComponentElement.razor"] = { link = "@type" },
+    ["@lsp.type.razorTagHelperElement.razor"] = { link = "@type" },
     ["@lsp.type.stringVerbatim.razor"] = { link = "@string" },
     ["@lsp.type.delegate.razor"] = { link = "@variable" },
     ["@lsp.type.constant.razor"] = { link = "@variable" },
-    ["@lsp.type.razorComponentAttribute.razor"] = { link = "@lsp.type.property" },
+    ["@lsp.type.razorComponentAttribute.razor"] = { link = "@property" },
 
     --Regex in string being passed to something like the Regex.Match()
     ["@lsp.type.regexComment.razor"] = { link = "@comment" },
