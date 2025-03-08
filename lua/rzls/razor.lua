@@ -100,7 +100,6 @@ M.notification = {
     razor_provideDynamicFileInfo = "razor/provideDynamicFileInfo",
 }
 
-
 ---@type table<string, vim.api.keyset.highlight>
 --TODO: Extend this to cover all razor highlights
 -- https://github.com/dotnet/vscode-csharp/blob/802be7399e947ab82f2a69780d43a57c1d5be6aa/package.json#L4761
