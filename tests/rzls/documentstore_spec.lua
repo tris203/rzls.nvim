@@ -4,7 +4,7 @@ local documentstore = require("rzls.documentstore")
 local eq = assert.are.same
 
 describe("documentstore", function()
-    it("create and retrieve docs", function()
+    it("create and retreive docs", function()
         local path = "tests/rzls/fixtures/test2.razor"
         local path_prefix = vim.loop.cwd() .. "/"
         local full_path = "file://" .. path_prefix .. path
