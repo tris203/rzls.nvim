@@ -88,6 +88,7 @@ function M.register_vbufs_by_path(current_file, ensure_open)
 
     if ensure_open then
         local buf = vim.uri_to_bufnr(html_uri)
+        vim.api.nvim_set_option_value("filetype", "html", { buf = buf })
         ---@type rzls.VirtualDocument
         local hvd = virtual_documents[current_file][razor.language_kinds.html]
         local success = hvd:update_bufnr(buf)
