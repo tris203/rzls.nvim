@@ -1,8 +1,6 @@
 local documentstore = require("rzls.documentstore")
 local razor = require("rzls.razor")
 
-local empty_response = {}
-
 ---@param _err lsp.ResponseError
 ---@param result razor.CSharpPullDiagnosticParams
 ---@param _ctx lsp.HandlerContext
@@ -14,7 +12,7 @@ return function(_err, result, _ctx, _config)
         result.identifier.version
     )
     if not virtual_document then
-        return empty_response
+        return vim.NIL
     end
 
     ---@type lsp.DocumentDiagnosticParams
@@ -25,10 +23,13 @@ return function(_err, result, _ctx, _config)
     }
 
     ---@type lsp.Diagnostic[]
-    local diagnostic_response =
+    local diagnostic_response, err =
         virtual_document:lsp_request(vim.lsp.protocol.Methods.textDocument_diagnostic, diagnostic_params)
-    if not diagnostic_response then
-        return empty_response
+    if not diagnostic_response or err then
+        --NOTE:
+        -- Return VIM.NIL here rather than empty response
+        -- (https://github.com/tris203/rzls.nvim/pull/60)
+        return vim.NIL, nil
     end
 
     return diagnostic_response
