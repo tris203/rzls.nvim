@@ -7,7 +7,7 @@ M.check = function()
     -- make sure setup function parameters are ok
 
     vim.health.start("document store")
-    ---@type rzls.VirtualDocument<string, table<razor.LanguageKind, rzls.VirtualDocument>>
+    ---@type { [string]: rzls.VirtualDocument }
     local document_store = require("rzls.documentstore").get_docstore
     for razor_filename, docs in pairs(document_store) do
         vim.health.info("razor file: " .. razor_filename)

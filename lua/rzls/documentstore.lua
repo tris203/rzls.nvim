@@ -8,7 +8,7 @@ local roslyn_notify_queue = {}
 
 local M = {}
 
----@type rzls.VirtualDocument<string, table<razor.LanguageKind, rzls.VirtualDocument>>
+---@type { [string]: rzls.VirtualDocument }
 local virtual_documents = {}
 
 ---Discover if doc is already open
@@ -45,7 +45,6 @@ function M.register_vbufs_by_path(current_file, ensure_open)
 
     if ensure_open then
         local buf = vim.uri_to_bufnr(current_file)
-        ---@type rzls.VirtualDocument
         local vd = virtual_documents[current_file]
         local success = vd:update_bufnr(buf)
         assert(success, "Failed to update bufnr for " .. current_file)
@@ -67,8 +66,8 @@ function M.register_vbufs_by_path(current_file, ensure_open)
     if ensure_open then
         local buf = vim.uri_to_bufnr(csharp_uri)
         vim.api.nvim_set_option_value("filetype", "cs", { buf = buf })
-        ---@type rzls.VirtualDocument
-        local cvd = virtual_documents[current_file][razor.language_kinds.csharp]
+        local cvd = M.get_virtual_document(current_file, razor.language_kinds.csharp, "any")
+        assert(cvd, "Failed to get virtual document for " .. csharp_uri)
         local success = cvd:update_bufnr(buf)
         assert(success, "Failed to update bufnr for " .. csharp_uri)
     end
@@ -89,8 +88,8 @@ function M.register_vbufs_by_path(current_file, ensure_open)
     if ensure_open then
         local buf = vim.uri_to_bufnr(html_uri)
         vim.api.nvim_set_option_value("filetype", "html", { buf = buf })
-        ---@type rzls.VirtualDocument
-        local hvd = virtual_documents[current_file][razor.language_kinds.html]
+        local hvd = M.get_virtual_document(current_file, razor.language_kinds.html, "any")
+        assert(hvd, "Failed to get virtual document for " .. html_uri)
         local success = hvd:update_bufnr(buf)
         assert(success, "Failed to update bufnr for " .. html_uri)
     end
@@ -98,11 +97,13 @@ end
 
 ---@param result VBufUpdate
 ---@param language_kind razor.LanguageKind
+---@return integer? --- the buffer number of the updated virtual document
 function M.update_vbuf(result, language_kind)
     M.register_vbufs_by_path(result.hostDocumentFilePath, false)
     local razor_uri = vim.uri_from_fname(result.hostDocumentFilePath)
-    ---@type rzls.VirtualDocument
-    local virtual_document = virtual_documents[razor_uri][language_kind]
+    local virtual_document = M.get_virtual_document(razor_uri, language_kind, "any")
+
+    assert(virtual_document, "received update for non-existent virtual document")
 
     if result.previousWasEmpty and virtual_document.content ~= "" then
         virtual_document.content = ""
