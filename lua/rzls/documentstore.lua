@@ -133,7 +133,7 @@ function M.update_vbuf(result, language_kind)
 
             if not roslyn then
                 ---NOTE:there is no roslyn to notify so we will do it later
-                return
+                return virtual_document.buf
             end
 
             for i, notify in ipairs(roslyn_notify_queue) do
@@ -149,21 +149,6 @@ function M.update_vbuf(result, language_kind)
     virtual_document.checksum_algorithm = result.checksumAlgorithm or 1
     virtual_document.encoding_code_page = result.encodingCodePage
     return virtual_document.buf
-end
-
----Refreshes parent views of the given virtual document
----@param result VBufUpdate
-function M.refresh_parent_views(result)
-    local uri = vim.uri_from_fname(result.hostDocumentFilePath)
-    ---@type rzls.VirtualDocument?
-    local rvd = virtual_documents[uri]
-    if not rvd or rvd.kind ~= razor.language_kinds.razor then
-        assert(false, "Not a razor document")
-        return
-    end
-    if vim.lsp.inlay_hint.is_enabled({ bufnr = rvd.buf }) then
-        vim.lsp.inlay_hint.enable(true, { bufnr = rvd.buf })
-    end
 end
 
 ---@async

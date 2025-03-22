@@ -33,14 +33,12 @@ return {
     ---@param result VBufUpdate
     ["razor/updateCSharpBuffer"] = function(_err, result)
         local buf = documentstore.update_vbuf(result, razor.language_kinds.csharp)
-        documentstore.refresh_parent_views(result)
         require("rzls.refresh").diagnostics.add(buf)
     end,
     ---@param _err lsp.ResponseError
     ---@param result VBufUpdate
     ["razor/updateHtmlBuffer"] = function(_err, result)
-        local buf = documentstore.update_vbuf(result, razor.language_kinds.html)
-        require("rzls.refresh").diagnostics.add(buf)
+        documentstore.update_vbuf(result, razor.language_kinds.html)
     end,
     ["razor/provideCodeActions"] = not_implemented,
     ["razor/resolveCodeActions"] = not_implemented,
