@@ -1,11 +1,8 @@
 local documentstore = require("rzls.documentstore")
 local razor = require("rzls.razor")
 
-local function future_refresh(buf)
-    vim.defer_fn(function()
-        vim.lsp.util._refresh("textDocument/diagnostic", { bufnr = buf })
-    end, 1000)
-end
+---@type { [integer] : any }
+local _cache = {}
 
 ---@param _err lsp.ResponseError
 ---@param result razor.CSharpPullDiagnosticParams
@@ -35,17 +32,19 @@ return function(_err, result, _ctx, _config)
         --NOTE:
         -- Return VIM.NIL here rather than empty response
         -- (https://github.com/tris203/rzls.nvim/pull/60)
-        local rvd = documentstore.get_virtual_document(
-            result.identifier.textDocumentIdentifier.uri,
-            razor.language_kinds.razor,
-            "any"
-        )
-        if rvd then
-            future_refresh(rvd.buf)
+
+        if not vim.deep_equal(_cache[virtual_document.buf], diagnostic_response) then
+            require("rzls.refresh").diagnostics.add(virtual_document.buf)
         end
+        _cache[virtual_document.buf] = nil
+
         return vim.NIL, nil
     end
 
-    future_refresh()
+    if not vim.deep_equal(_cache[virtual_document.buf], diagnostic_response) then
+        require("rzls.refresh").diagnostics.add(virtual_document.buf)
+    end
+    _cache[virtual_document.buf] = diagnostic_response
+
     return diagnostic_response
 end

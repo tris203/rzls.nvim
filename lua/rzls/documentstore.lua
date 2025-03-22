@@ -97,7 +97,7 @@ end
 
 ---@param result VBufUpdate
 ---@param language_kind razor.LanguageKind
----@return integer? --- the buffer number of the updated virtual document
+---@return integer --- the buffer number of the updated virtual document
 function M.update_vbuf(result, language_kind)
     M.register_vbufs_by_path(result.hostDocumentFilePath, false)
     local razor_uri = vim.uri_from_fname(result.hostDocumentFilePath)
@@ -148,6 +148,7 @@ function M.update_vbuf(result, language_kind)
     virtual_document.checksum = result.checksum
     virtual_document.checksum_algorithm = result.checksumAlgorithm or 1
     virtual_document.encoding_code_page = result.encodingCodePage
+    return virtual_document.buf
 end
 
 ---Refreshes parent views of the given virtual document
@@ -212,6 +213,27 @@ function M.get_virtual_document(uri, type, version)
     end
 
     return virtual_document
+end
+
+--- Returns the razor bufnr for a given virtual buffer number
+---@param bufnr integer
+---@return rzls.VirtualDocument
+function M.get_razor_document_by_bufnr(bufnr)
+    if bufnr == 0 then
+        bufnr = vim.api.nvim_get_current_buf()
+    end
+    for _, docs in pairs(virtual_documents) do
+        local virt_docs = {
+            razor = M.get_virtual_document(docs.uri, razor.language_kinds.razor, "any"),
+            csharp = M.get_virtual_document(docs.uri, razor.language_kinds.csharp, "any"),
+            html = M.get_virtual_document(docs.uri, razor.language_kinds.html, "any"),
+        }
+        if virt_docs.razor.buf == bufnr or virt_docs.csharp.buf == bufnr or virt_docs.html.buf == bufnr then
+            return virt_docs.razor
+        end
+    end
+    ---@diagnostic disable-next-line: missing-return
+    assert(false, "No virtual document found for bufnr: " .. bufnr)
 end
 
 local pipe_name
