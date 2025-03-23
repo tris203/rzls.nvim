@@ -1,7 +1,5 @@
----@diagnostic disable-next-line: undefined-field
-local eq = assert.are.same
----@diagnostic disable-next-line: undefined-field
-local neq = assert.are_not.same
+local eq = MiniTest.expect.equality
+local neq = MiniTest.expect.no_equality
 
 describe("uuid", function()
     it("generates unique uuids", function()
