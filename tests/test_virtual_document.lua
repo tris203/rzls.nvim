@@ -1,7 +1,6 @@
 local virtual_document = require("rzls.virtual_document")
 local razor = require("rzls.razor")
----@diagnostic disable-next-line: undefined-field
-local eq = assert.are.same
+local eq = MiniTest.expect.equality
 
 describe("virtual document", function()
     local vd

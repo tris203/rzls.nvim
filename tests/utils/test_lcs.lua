@@ -1,7 +1,6 @@
 local lcs = require("rzls.utils.lcs")
 local kind = lcs.edit_kind
----@diagnostic disable-next-line: undefined-field
-local eq = assert.are.same
+local eq = MiniTest.expect.equality
 
 describe("lcs", function()
     it("calculates diff for saturday -> sunday", function()

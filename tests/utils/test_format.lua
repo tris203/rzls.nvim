@@ -1,6 +1,5 @@
 local format = require("rzls.utils.format")
----@diagnostic disable-next-line: undefined-field
-local eq = assert.are.same
+local eq = MiniTest.expect.equality
 
 ---@return lsp.TextEdit
 local function lsp_edit(new_text, start_line, start_char, end_line, end_char)
