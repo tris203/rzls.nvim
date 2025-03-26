@@ -234,13 +234,9 @@ function VirtualDocument:language_query(position)
         Log.rzlsnvim = "[Language Query]LSP client not found for " .. self.uri
         return nil, vim.lsp.rpc_response_error(vim.lsp.protocol.ErrorCodes.InvalidRequest, "LSP client not found")
     end
-    --=TODO: Remove when 0.11 only
-    ---@diagnostic disable-next-line: param-type-mismatch
-    local response = lsp.request_sync("razor/languageQuery", {
+    local response = lsp:request_sync("razor/languageQuery", {
         position = position,
         uri = self.uri,
-        --=TODO: Remove when 0.11 only
-        ---@diagnostic disable-next-line: param-type-mismatch
     }, nil, self.buf)
     if not response or response.err then
         Log.rzlsnvim = "Language Query Request failed: " .. vim.inspect(response and response.err)
@@ -265,14 +261,10 @@ function VirtualDocument:map_to_document_ranges(language_kind, ranges)
         return nil, vim.lsp.rpc_response_error(vim.lsp.protocol.ErrorCodes.InvalidRequest, "LSP client not found")
     end
 
-    --=TODO: Remove when 0.11 only
-    ---@diagnostic disable-next-line: param-type-mismatch
-    local response = lsp.request_sync("razor/mapToDocumentRanges", {
+    local response = lsp:request_sync("razor/mapToDocumentRanges", {
         razorDocumentUri = self.uri,
         kind = language_kind,
         projectedRanges = ranges,
-        --=TODO: Remove when 0.11 only
-        ---@diagnostic disable-next-line: param-type-mismatch
     }, nil, self.buf)
     if not response or response.err then
         Log.rzlsnvim = "Map Document Range Request failed for "
@@ -302,9 +294,7 @@ function VirtualDocument:lsp_request(method, params, buf)
         Log.rzlsnvim = "[" .. method .. "]LSP client not found for " .. self.uri
         return nil, vim.lsp.rpc_response_error(vim.lsp.protocol.ErrorCodes.InvalidRequest, "LSP client not found")
     end
-    --=TODO: Remove when 0.11 only
-    ---@diagnostic disable-next-line: param-type-mismatch
-    local result = lsp.request_sync(method, params, nil, buf or self.buf)
+    local result = lsp:request_sync(method, params, nil, buf or self.buf)
     if not result or result.err then
         Log.rzlsnvim = "LSP request failed for " .. self.uri .. ": " .. vim.inspect(result and result.err)
         Log.rzlsnvim = vim.inspect({ method = method, params = params })
