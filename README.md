@@ -83,33 +83,51 @@ You also must configure the [`roslyn.nvim`](https://github.com/seblyng/roslyn.nv
 to communicate with the razor LSP. To do so, you must pass the handlers defined in the
 `rzls.roslyn_handlers` module:
 
+### Manual
+```lua
+local exe = { "dotnet", vim.fs.joinpath(vim.fn.stdpath("data"), "roslyn", "Microsoft.CodeAnalysis.LanguageServer.dll") }
+```
+
+### Mason
+```lua
+-- NOTE: If you use windows you must append `.cmd` at the end
+local exe = {
+  vim.fs.joinpath(
+    vim.fn.stdpath 'data' --[[@as string]],
+    'mason',
+    'bin',
+    'roslyn',
+  )
+}
+```
+
 ```lua
 require('roslyn').setup {
-  args = {
-    '--stdio',
-    '--logLevel=Information',
-    '--extensionLogDirectory=' .. vim.fs.dirname(vim.lsp.get_log_path()),
-    '--razorSourceGenerator=' .. vim.fs.joinpath(
-      vim.fn.stdpath 'data' --[[@as string]],
-      'mason',
-      'packages',
-      'roslyn',
-      'libexec',
-      'Microsoft.CodeAnalysis.Razor.Compiler.dll'
-    ),
-    '--razorDesignTimePath=' .. vim.fs.joinpath(
-      vim.fn.stdpath 'data' --[[@as string]],
-      'mason',
-      'packages',
-      'rzls',
-      'libexec',
-      'Targets',
-      'Microsoft.NET.Sdk.Razor.DesignTime.targets'
-    ),
-  },
   config = {
     --[[ the rest of your roslyn config ]]
     handlers = require 'rzls.roslyn_handlers',
+    cmd = vim.list_extend(exe, {
+      '--stdio',
+      '--logLevel=Information',
+      '--extensionLogDirectory=' .. vim.fs.dirname(vim.lsp.get_log_path()),
+      '--razorSourceGenerator=' .. vim.fs.joinpath(
+        vim.fn.stdpath 'data' --[[@as string]],
+        'mason',
+        'packages',
+        'roslyn',
+        'libexec',
+        'Microsoft.CodeAnalysis.Razor.Compiler.dll'
+      ),
+      '--razorDesignTimePath=' .. vim.fs.joinpath(
+        vim.fn.stdpath 'data' --[[@as string]],
+        'mason',
+        'packages',
+        'rzls',
+        'libexec',
+        'Targets',
+        'Microsoft.NET.Sdk.Razor.DesignTime.targets'
+      )
+    })
   },
 }
 ```
@@ -134,24 +152,25 @@ return {
     },
     config = function()
       require('roslyn').setup {
-        args = {
-          '--stdio',
-          '--logLevel=Information',
-          '--extensionLogDirectory=' .. vim.fs.dirname(vim.lsp.get_log_path()),
-          '--razorSourceGenerator='
-            .. vim.fs.joinpath(vim.fn.stdpath 'data' --[[@as string]], 'mason', 'packages', 'roslyn', 'libexec', 'Microsoft.CodeAnalysis.Razor.Compiler.dll'),
-          '--razorDesignTimePath=' .. vim.fs.joinpath(
-            vim.fn.stdpath 'data' --[[@as string]],
-            'mason',
-            'packages',
-            'rzls',
-            'libexec',
-            'Targets',
-            'Microsoft.NET.Sdk.Razor.DesignTime.targets'
-          ),
-        },
-        ---@diagnostic disable-next-line: missing-fields
         config = {
+          cmd = {
+            "dotnet",
+            vim.fs.joinpath(vim.fn.stdpath("data"), "roslyn", "Microsoft.CodeAnalysis.LanguageServer.dll"),
+            '--stdio',
+            '--logLevel=Information',
+            '--extensionLogDirectory=' .. vim.fs.dirname(vim.lsp.get_log_path()),
+            '--razorSourceGenerator='
+              .. vim.fs.joinpath(vim.fn.stdpath 'data' --[[@as string]], 'mason', 'packages', 'roslyn', 'libexec', 'Microsoft.CodeAnalysis.Razor.Compiler.dll'),
+            '--razorDesignTimePath=' .. vim.fs.joinpath(
+              vim.fn.stdpath 'data' --[[@as string]],
+              'mason',
+              'packages',
+              'rzls',
+              'libexec',
+              'Targets',
+              'Microsoft.NET.Sdk.Razor.DesignTime.targets'
+            )
+          },
           handlers = require 'rzls.roslyn_handlers',
           settings = {
             ['csharp|inlay_hints'] = {
