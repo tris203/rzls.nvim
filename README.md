@@ -11,22 +11,22 @@ auto-completion, go-to-definition, and more all from within neovim 💻🔧
 
 ### Features
 
-| Feature               | Support     |
-| --------------------- | ----------- |
-| Hover                 | ✅          |
-| Diagnositcs           | ✅          |
-| Go To Definition      | ✅          |
-| Go To References      | ✅          |
-| Semantic Highlighting | ✅          |
-| Formatting            | ✅          |
-| Rename Symbol         | ✅          |
-| Signature Help        | ✅          |
-| Completions           | ✅          |
-| Inlay Hints           | ✅          |
-| Code Actions          | ❌          |
-| Folding               | ❌          |
-| CodeLens              | ❌          |
-| Format New Files      | ❌          |
+| Feature               | Support |
+| --------------------- | ------- |
+| Hover                 | ✅      |
+| Diagnositcs           | ✅      |
+| Go To Definition      | ✅      |
+| Go To References      | ✅      |
+| Semantic Highlighting | ✅      |
+| Formatting            | ✅      |
+| Rename Symbol         | ✅      |
+| Signature Help        | ✅      |
+| Completions           | ✅      |
+| Inlay Hints           | ✅      |
+| Code Actions          | ❌      |
+| Folding               | ✅      |
+| CodeLens              | ❌      |
+| Format New Files      | ❌      |
 
 > [!NOTE]
 > Semantic highlight groups need more configuration If you find a
@@ -55,9 +55,9 @@ require("mason").setup({
 
 ## Dependencies
 
-You must install the following plugins:
+You must install the following plug ins:
 
-- [seblj/roslyn.nvim](https://github.com/seblj/roslyn.nvim)
+- [seblyng/roslyn.nvim](https://github.com/seblyng/roslyn.nvim)
 
 > [!CAUTION]
 > Please see Integration section for extra arguments that must be passed to
@@ -70,18 +70,28 @@ install and configure it via `mason` and `nvim-lspconfig`.
 
 You can pass a configuration table to the `setup` function. The configuration options are:
 
-- `on_attach`: A function that is called when the LSP client attaches to a buffer.
-- `capabilities`: A table that defines the capabilities of the LSP client.
+- `on_attach`: A function that is called when the LSP client attaches to a
+  buffer. If you don't know what this is, or your on_attach function is provided
+  by an autocommand. You omit the option, or pass an empty function.
+- `capabilities`: A table that defines the capabilities of the LSP client. If
+  you don't know what this is, it can either be omitted or found in the
+  documentation of your cmp provider.
 - `path`: The path to the rzls executable if not installed via mason. If you
   have installed via mason you can omit this option.
 
-You also must configure the [`roslyn.nvim`](https://github.com/seblj/roslyn.nvim) plugin
-to communicate with the razor LSP. To do so, you must pass the handlers defined in the
-`rzls.roslyn_handlers` module:
+You also must configure the [`roslyn.nvim`](https://github.com/seblyng/roslyn.nvim) plugin
+to communicate with the razor LSP. To do so, you must pass the handlers defined
+in the `rzls.roslyn_handlers` module and adjust the CLI command that roslyn
+uses.
 
-### Composing the command
+### Composing the command for roslyn
 
-#### Manually
+To configure roslyn.nvim, you need to compose a shell command string with
+arguments for it. Some of these arguments are CLI-options relating to rzls. You
+can compose the command as follows, depending on whether you installed roslyn
+and rzls manually or with mason.
+
+Manually:
 
 ```lua
 -- Adjust these paths to where you installed roslyn and rzls.
@@ -100,7 +110,7 @@ local cmd = {
 }
 ```
 
-#### With mason
+With mason:
 
 ```lua
 local mason_registry = require("mason-registry")
@@ -134,22 +144,92 @@ if roslyn_package:is_installed() then
 end
 ```
 
-### Configuration with roslyn
+Finally, use the composed cmd and rzls handlers like so:
 
 ```lua
-require("roslyn").setup {
-    cmd = cmd
+require("roslyn").setup({
+  cmd = cmd
+  config = {
     -- the rest of your roslyn config
-    handlers = require "rzls.roslyn_handlers",
-}
+    handlers = require 'rzls.roslyn_handlers',
+  },
+})
 ```
 
-### Inlay Hints
+### Example config
 
-Inlay hints are provided in razor documents via the roslyn lsp.
+```lua
+-- Adjust these paths to where you installed roslyn and rzls.
+local roslyn_base_path = vim.fs.joinpath(vim.fn.stdpath("data"), "roslyn")
+local rzls_base_path = vim.fs.joinpath(vim.fn.stdpath("data"), "rzls")
 
-To enable, you must enable inlay hinting in nvim config `:h vim.lsp.inlay_hint.enable()`
-and also configure `csharp|inlay_hint_*` options in [roslyn.nvim](https://github.com/seblj/roslyn.nvim)
+local cmd = {
+    "dotnet",
+    vim.fs.joinpath(roslyn_base_path, "Microsoft.CodeAnalysis.LanguageServer.dll"),
+    "--stdio",
+    "--logLevel=Information",
+    "--extensionLogDirectory=" .. vim.fs.dirname(vim.lsp.get_log_path()),
+    "--razorSourceGenerator=" .. vim.fs.joinpath(rzls_base_path, "Microsoft.CodeAnalysis.Razor.Compiler.dll"),
+    "--razorDesignTimePath="
+        .. vim.fs.joinpath(rzls_base_path, "Targets", "Microsoft.NET.Sdk.Razor.DesignTime.targets"),
+}
+
+return {
+    {
+        "seblyng/roslyn.nvim",
+        ft = { "cs", "razor" },
+        dependencies = {
+            {
+                -- By loading as a dependencies, we ensure that we are available to set
+                -- the handlers for roslyn
+                "tris203/rzls.nvim",
+                config = function()
+                    ---@diagnostic disable-next-line: missing-fields
+                    require("rzls").setup({})
+                end,
+            },
+        },
+        config = function()
+            require("roslyn").setup({
+                cmd = cmd,
+                ---@diagnostic disable-next-line: missing-fields
+                config = {
+                    handlers = require("rzls.roslyn_handlers"),
+                    settings = {
+                        ["csharp|inlay_hints"] = {
+                            csharp_enable_inlay_hints_for_implicit_object_creation = true,
+                            csharp_enable_inlay_hints_for_implicit_variable_types = true,
+
+                            csharp_enable_inlay_hints_for_lambda_parameter_types = true,
+                            csharp_enable_inlay_hints_for_types = true,
+                            dotnet_enable_inlay_hints_for_indexer_parameters = true,
+                            dotnet_enable_inlay_hints_for_literal_parameters = true,
+                            dotnet_enable_inlay_hints_for_object_creation_parameters = true,
+                            dotnet_enable_inlay_hints_for_other_parameters = true,
+                            dotnet_enable_inlay_hints_for_parameters = true,
+                            dotnet_suppress_inlay_hints_for_parameters_that_differ_only_by_suffix = true,
+                            dotnet_suppress_inlay_hints_for_parameters_that_match_argument_name = true,
+                            dotnet_suppress_inlay_hints_for_parameters_that_match_method_intent = true,
+                        },
+                        ["csharp|code_lens"] = {
+                            dotnet_enable_references_code_lens = true,
+                        },
+                    },
+                },
+            })
+        end,
+        init = function()
+            -- we add the razor filetypes before the plugin loads
+            vim.filetype.add({
+                extension = {
+                    razor = "razor",
+                    cshtml = "razor",
+                },
+            })
+        end,
+    },
+}
+```
 
 ## Additional Configuration
 
@@ -168,7 +248,7 @@ require("telescope").setup({
 
 ### Trouble
 
-If you use trouble for diagnostics, then you want to excludion the virtual
+If you use trouble for diagnostics, then you want to exclude the virtual
 buffers from diagnostics
 
 ```lua

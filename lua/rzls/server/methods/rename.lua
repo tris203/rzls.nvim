@@ -45,7 +45,7 @@ return function(params)
     ---@type lsp.WorkspaceEdit?
     local edits, editerr = csvd:lsp_request(vim.lsp.protocol.Methods.textDocument_rename, {
         textDocument = {
-            uri = csvd.path,
+            uri = csvd.uri,
         },
         position = language_query_response.position,
         newName = params.newName,
