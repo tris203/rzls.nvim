@@ -45,12 +45,12 @@ The LSP can be cloned and compiled from source from the `dotnet/razor` repo.
 > It can be included in your config:
 
 ```lua
-require('mason').setup {
-  registries = {
-    'github:mason-org/mason-registry',
-    'github:crashdummyy/mason-registry',
-  },
-}
+require("mason").setup({
+    registries = {
+        "github:mason-org/mason-registry",
+        "github:crashdummyy/mason-registry",
+    },
+})
 ```
 
 ## Dependencies
@@ -79,34 +79,68 @@ You also must configure the [`roslyn.nvim`](https://github.com/seblj/roslyn.nvim
 to communicate with the razor LSP. To do so, you must pass the handlers defined in the
 `rzls.roslyn_handlers` module:
 
+### Composing the command
+
+#### Manually
+
 ```lua
-require('roslyn').setup {
-  args = {
-    '--logLevel=Information',
-    '--extensionLogDirectory=' .. vim.fs.dirname(vim.lsp.get_log_path()),
-    '--razorSourceGenerator=' .. vim.fs.joinpath(
-      vim.fn.stdpath 'data' --[[@as string]],
-      'mason',
-      'packages',
-      'roslyn',
-      'libexec',
-      'Microsoft.CodeAnalysis.Razor.Compiler.dll'
-    ),
-    '--razorDesignTimePath=' .. vim.fs.joinpath(
-      vim.fn.stdpath 'data' --[[@as string]],
-      'mason',
-      'packages',
-      'rzls',
-      'libexec',
-      'Targets',
-      'Microsoft.NET.Sdk.Razor.DesignTime.targets'
-    ),
-  },
-  config = {
-    on_attach = require 'lspattach',
-    capabilities = capabilities,
-    handlers = require 'rzls.roslyn_handlers',
-  },
+-- Adjust these paths to where you installed roslyn and rzls.
+local roslyn_base_path = vim.fs.joinpath(vim.fn.stdpath("data"), "roslyn")
+local rzls_base_path = vim.fs.joinpath(vim.fn.stdpath("data"), "rzls")
+
+local cmd = {
+    "dotnet",
+    vim.fs.joinpath(roslyn_base_path, "Microsoft.CodeAnalysis.LanguageServer.dll"),
+    "--stdio",
+    "--logLevel=Information",
+    "--extensionLogDirectory=" .. vim.fs.dirname(vim.lsp.get_log_path()),
+    "--razorSourceGenerator=" .. vim.fs.joinpath(rzls_base_path, "Microsoft.CodeAnalysis.Razor.Compiler.dll"),
+    "--razorDesignTimePath="
+        .. vim.fs.joinpath(rzls_base_path, "Targets", "Microsoft.NET.Sdk.Razor.DesignTime.targets"),
+}
+```
+
+#### With mason
+
+```lua
+local mason_registry = require("mason-registry")
+
+--- @type string[]
+local cmd = {}
+
+local roslyn_package = mason_registry.get_package("roslyn")
+if roslyn_package:is_installed() then
+    vim.list_extend(cmd, {
+        "dotnet",
+        vim.fs.joinpath(roslyn_package:get_install_path(), "libexec", "Microsoft.CodeAnalysis.LanguageServer.dll"),
+        "--stdio",
+        "--logLevel=Information",
+        "--extensionLogDirectory=" .. vim.fs.dirname(vim.lsp.get_log_path()),
+    })
+
+    local rzls_package = mason_registry.get_package("rzls")
+    if rzls_package:is_installed() then
+        local rzls_path = vim.fs.joinpath(rzls_package:get_install_path(), "libexec")
+        table.insert(
+            cmd,
+            "--razorSourceGenerator=" .. vim.fs.joinpath(rzls_path, "Microsoft.CodeAnalysis.Razor.Compiler.dll")
+        )
+        table.insert(
+            cmd,
+            "--razorDesignTimePath="
+                .. vim.fs.joinpath(rzls_path, "Targets", "Microsoft.NET.Sdk.Razor.DesignTime.targets")
+        )
+    end
+end
+```
+
+### Configuration with roslyn
+
+```lua
+require("roslyn").setup {
+    cmd = cmd
+    -- the rest of your roslyn config
+    handlers = require "rzls.roslyn_handlers",
 }
 ```
 
@@ -125,11 +159,11 @@ If you use telescope for definitions and references then you may want to add
 additional filtering exclude references in the generated virtual files
 
 ```lua
-require('telescope').setup {
-  defaults = {
-    file_ignore_patterns = { '%__virtual.cs$' },
-  },
-}
+require("telescope").setup({
+    defaults = {
+        file_ignore_patterns = { "%__virtual.cs$" },
+    },
+})
 ```
 
 ### Trouble
@@ -138,19 +172,18 @@ If you use trouble for diagnostics, then you want to excludion the virtual
 buffers from diagnostics
 
 ```lua
-require('trouble').setup {
-      modes = {
+require("trouble").setup({
+    modes = {
         diagnostics = {
-          filter = function(items)
-            return vim.tbl_filter(function(item)
-              return not string.match(item.basename, [[%__virtual.cs$]])
-            end, items)
-          end,
+            filter = function(items)
+                return vim.tbl_filter(function(item)
+                    return not string.match(item.basename, [[%__virtual.cs$]])
+                end, items)
+            end,
         },
-      },
-}
+    },
+})
 ```
-
 
 ## Known Issues
 
