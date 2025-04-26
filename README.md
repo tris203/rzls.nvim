@@ -71,14 +71,14 @@ options are:
 
 You must install the following plug-ins:
 
-- [`seblyng/roslyn.nvim`](https://github.com/seblyng/roslyn.nvim)
+- [`seblyng/roslyn.nvim`](https://github.com/seblyng/roslyn.nvim) for general
+  functionality
+- `html-lsp` for completions and formatting. You can install and configure it
+  via `mason` and `nvim-lspconfig`.
 
 > [!CAUTION]
 > Please see the Integration section for extra arguments that must be passed to
 > `roslyn.nvim` setup.
-
-The `html-lsp` is also required to provide completions and formatting. You can
-install and configure it via `mason` and `nvim-lspconfig`.
 
 ## Integration
 
@@ -174,41 +174,36 @@ return {
                 -- By loading as a dependencies, we ensure that we are available to set
                 -- the handlers for Roslyn.
                 "tris203/rzls.nvim",
-                config = function()
-                    ---@diagnostic disable-next-line: missing-fields
-                    require("rzls").setup({})
-                end,
+                config = true,
             },
         },
-        config = function()
-            require("roslyn").setup({
-                cmd = cmd,
-                ---@diagnostic disable-next-line: missing-fields
-                config = {
-                    handlers = require("rzls.roslyn_handlers"),
-                    settings = {
-                        ["csharp|inlay_hints"] = {
-                            csharp_enable_inlay_hints_for_implicit_object_creation = true,
-                            csharp_enable_inlay_hints_for_implicit_variable_types = true,
+        opts = {
+            cmd = cmd,
+            ---@diagnostic disable-next-line: missing-fields
+            config = {
+                handlers = require("rzls.roslyn_handlers"),
+                settings = {
+                    ["csharp|inlay_hints"] = {
+                        csharp_enable_inlay_hints_for_implicit_object_creation = true,
+                        csharp_enable_inlay_hints_for_implicit_variable_types = true,
 
-                            csharp_enable_inlay_hints_for_lambda_parameter_types = true,
-                            csharp_enable_inlay_hints_for_types = true,
-                            dotnet_enable_inlay_hints_for_indexer_parameters = true,
-                            dotnet_enable_inlay_hints_for_literal_parameters = true,
-                            dotnet_enable_inlay_hints_for_object_creation_parameters = true,
-                            dotnet_enable_inlay_hints_for_other_parameters = true,
-                            dotnet_enable_inlay_hints_for_parameters = true,
-                            dotnet_suppress_inlay_hints_for_parameters_that_differ_only_by_suffix = true,
-                            dotnet_suppress_inlay_hints_for_parameters_that_match_argument_name = true,
-                            dotnet_suppress_inlay_hints_for_parameters_that_match_method_intent = true,
-                        },
-                        ["csharp|code_lens"] = {
-                            dotnet_enable_references_code_lens = true,
-                        },
+                        csharp_enable_inlay_hints_for_lambda_parameter_types = true,
+                        csharp_enable_inlay_hints_for_types = true,
+                        dotnet_enable_inlay_hints_for_indexer_parameters = true,
+                        dotnet_enable_inlay_hints_for_literal_parameters = true,
+                        dotnet_enable_inlay_hints_for_object_creation_parameters = true,
+                        dotnet_enable_inlay_hints_for_other_parameters = true,
+                        dotnet_enable_inlay_hints_for_parameters = true,
+                        dotnet_suppress_inlay_hints_for_parameters_that_differ_only_by_suffix = true,
+                        dotnet_suppress_inlay_hints_for_parameters_that_match_argument_name = true,
+                        dotnet_suppress_inlay_hints_for_parameters_that_match_method_intent = true,
+                    },
+                    ["csharp|code_lens"] = {
+                        dotnet_enable_references_code_lens = true,
                     },
                 },
-            })
-        end,
+            },
+        },
         init = function()
             -- We add the Razor file types before the plugin loads.
             vim.filetype.add({
@@ -224,10 +219,11 @@ return {
 
 ## Additional Configuration
 
-### Telescope
+### Telescope.nvim
 
-If you use telescope for definitions and references then you may want to add
-additional filtering exclude references in the generated virtual files
+If you use [`telescope.nvim`](https://github.com/nvim-telescope/telescope.nvim)
+for definitions and references then you may want to add additional filtering
+to exclude references in the generated virtual files.
 
 ```lua
 require("telescope").setup({
@@ -237,10 +233,10 @@ require("telescope").setup({
 })
 ```
 
-### Trouble
+### Trouble.nvim
 
-If you use trouble for diagnostics, then you want to exclude the virtual
-buffers from diagnostics
+If you use [`trouble.nvim`](https://github.com/folke/trouble.nvim) for
+diagnostics, then you want to exclude the virtual buffers from diagnostics
 
 ```lua
 require("trouble").setup({
