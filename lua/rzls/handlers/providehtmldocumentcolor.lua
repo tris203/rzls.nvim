@@ -32,7 +32,7 @@ return function(_err, result, _ctx, _config)
         virtual_document:lsp_request(vim.lsp.protocol.Methods.textDocument_documentColor, document_color_params)
 
     if request_err then
-        return nil, request_err
+        return empty_response, nil
     end
 
     return document_color_response

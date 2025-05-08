@@ -288,6 +288,22 @@ function VirtualDocument:map_to_document_ranges(language_kind, ranges)
     return response.result
 end
 
+---try to attach the lsp
+---@return vim.lsp.Client?
+function VirtualDocument:attach_lsp()
+    local lsp = self:get_lsp_client()
+    if not lsp then
+        local client = vim.lsp.get_clients({ name = razor.lsp_names[self.kind] })[1]
+        if not client then
+            Log.rzlsnvim = "LSP client not found for " .. self.uri
+            return
+        end
+        vim.lsp.buf_attach_client(self.buf, client.id)
+        return client
+    end
+    return lsp
+end
+
 --- issues an LSP request to the virtual document.
 --- Please use by passing a method from `vim.lsp.protocl.Methods`
 --- and type the expected return value as optional.
@@ -299,8 +315,12 @@ end
 function VirtualDocument:lsp_request(method, params, buf)
     local lsp = self:get_lsp_client()
     if not lsp then
-        Log.rzlsnvim = "[" .. method .. "]LSP client not found for " .. self.uri
-        return nil, vim.lsp.rpc_response_error(vim.lsp.protocol.ErrorCodes.InvalidRequest, "LSP client not found")
+        lsp = self:attach_lsp()
+        if not lsp then
+            --HACK: if we still dont have an lsp we are doomed
+            Log.rzlsnvim = "[" .. method .. "]LSP client not found for " .. self.uri
+            return nil, vim.lsp.rpc_response_error(vim.lsp.protocol.ErrorCodes.InvalidRequest, "LSP client not found")
+        end
     end
     --=TODO: Remove when 0.11 only
     ---@diagnostic disable-next-line: param-type-mismatch

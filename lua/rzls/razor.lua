@@ -73,6 +73,10 @@ local M = {}
 ---@field inlayHint lsp.InlayHint
 ---@field projectedKind razor.LanguageKind
 
+---@class razor.CSharpPullDiagnosticParams
+---@field correlationId string
+---@field identifier { textDocumentIdentifier: lsp.TextDocumentIdentifier, version: integer }
+
 ---@enum razor.LanguageKind
 M.language_kinds = {
     csharp = 1,
