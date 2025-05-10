@@ -124,8 +124,7 @@ local cmd = {}
 local roslyn_package = mason_registry.get_package("roslyn")
 if roslyn_package:is_installed() then
     vim.list_extend(cmd, {
-        "dotnet",
-        vim.fs.joinpath(roslyn_package:get_install_path(), "libexec", "Microsoft.CodeAnalysis.LanguageServer.dll"),
+        "roslyn",
         "--stdio",
         "--logLevel=Information",
         "--extensionLogDirectory=" .. vim.fs.dirname(vim.lsp.get_log_path()),
@@ -133,7 +132,7 @@ if roslyn_package:is_installed() then
 
     local rzls_package = mason_registry.get_package("rzls")
     if rzls_package:is_installed() then
-        local rzls_path = vim.fs.joinpath(rzls_package:get_install_path(), "libexec")
+        local rzls_path = vim.fn.expand("$MASON/packages/rzls/libexec")
         table.insert(
             cmd,
             "--razorSourceGenerator=" .. vim.fs.joinpath(rzls_path, "Microsoft.CodeAnalysis.Razor.Compiler.dll")
@@ -178,30 +177,27 @@ return {
             -- Use one of the methods in the Integration section to compose the command.
             local cmd = {}
 
-            return {
+            require("roslyn").setup {
                 cmd = cmd,
-                ---@diagnostic disable-next-line: missing-fields
-                config = {
-                    handlers = require("rzls.roslyn_handlers"),
-                    settings = {
-                        ["csharp|inlay_hints"] = {
-                            csharp_enable_inlay_hints_for_implicit_object_creation = true,
-                            csharp_enable_inlay_hints_for_implicit_variable_types = true,
+                handlers = require("rzls.roslyn_handlers"),
+                settings = {
+                    ["csharp|inlay_hints"] = {
+                        csharp_enable_inlay_hints_for_implicit_object_creation = true,
+                        csharp_enable_inlay_hints_for_implicit_variable_types = true,
 
-                            csharp_enable_inlay_hints_for_lambda_parameter_types = true,
-                            csharp_enable_inlay_hints_for_types = true,
-                            dotnet_enable_inlay_hints_for_indexer_parameters = true,
-                            dotnet_enable_inlay_hints_for_literal_parameters = true,
-                            dotnet_enable_inlay_hints_for_object_creation_parameters = true,
-                            dotnet_enable_inlay_hints_for_other_parameters = true,
-                            dotnet_enable_inlay_hints_for_parameters = true,
-                            dotnet_suppress_inlay_hints_for_parameters_that_differ_only_by_suffix = true,
-                            dotnet_suppress_inlay_hints_for_parameters_that_match_argument_name = true,
-                            dotnet_suppress_inlay_hints_for_parameters_that_match_method_intent = true,
-                        },
-                        ["csharp|code_lens"] = {
-                            dotnet_enable_references_code_lens = true,
-                        },
+                        csharp_enable_inlay_hints_for_lambda_parameter_types = true,
+                        csharp_enable_inlay_hints_for_types = true,
+                        dotnet_enable_inlay_hints_for_indexer_parameters = true,
+                        dotnet_enable_inlay_hints_for_literal_parameters = true,
+                        dotnet_enable_inlay_hints_for_object_creation_parameters = true,
+                        dotnet_enable_inlay_hints_for_other_parameters = true,
+                        dotnet_enable_inlay_hints_for_parameters = true,
+                        dotnet_suppress_inlay_hints_for_parameters_that_differ_only_by_suffix = true,
+                        dotnet_suppress_inlay_hints_for_parameters_that_match_argument_name = true,
+                        dotnet_suppress_inlay_hints_for_parameters_that_match_method_intent = true,
+                    },
+                    ["csharp|code_lens"] = {
+                        dotnet_enable_references_code_lens = true,
                     },
                 },
             }
