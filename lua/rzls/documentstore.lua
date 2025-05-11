@@ -95,7 +95,7 @@ function M.register_vbufs_by_path(current_file, ensure_open)
     end
 end
 
----@param result VBufUpdate
+---@param result razor.VBufUpdate
 ---@param language_kind razor.LanguageKind
 ---@return integer --- the buffer number of the updated virtual document
 function M.update_vbuf(result, language_kind)

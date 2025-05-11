@@ -1,5 +1,14 @@
 local M = {}
 
+---@class razor.VBufUpdate
+---@field checksum string
+---@field checksumAlgorithm number
+---@field encodingCodePage? number
+---@field previousWasEmpty boolean
+---@field hostDocumentFilePath string
+---@field hostDocumentVersion number
+---@field changes razor.razorTextChange[]
+
 ---@class razor.LanguageQueryParams
 ---@field position lsp.Position
 ---@field uri string
@@ -14,6 +23,10 @@ local M = {}
 ---@field razorDocumentUri string
 ---@field kind razor.LanguageKind
 ---@field projectedRanges lsp.Range[]
+
+---@class razor.TextSpan
+---@field start integer
+---@field length integer
 
 ---@class razor.MapToDocumentRangesResponse
 ---@field hostDocumentVersion integer
@@ -52,13 +65,14 @@ local M = {}
 
 ---@class razor.ProvideDynamicFileResponse
 ---@field csharpDocument? lsp.TextDocumentIdentifier
----@field updates? razor.DynamicFileUpdate[]
+---@field edits razor.razorTextChange[]
 ---@field checksum string
 ---@field checksumAlgorithm number
 ---@field encodingCodePage number | vim.NIL
 
----@class razor.DynamicFileUpdate
----@field edits Change[]
+---@class razor.razorTextChange
+---@field newText string
+---@field span razor.TextSpan
 
 ---@class razor.DynamicFileUpdatedParams
 ---@field razorDocument lsp.TextDocumentIdentifier

@@ -30,13 +30,13 @@ return {
 
     -- VS Windows and VS Code
     ---@param _err lsp.ResponseError
-    ---@param result VBufUpdate
+    ---@param result razor.VBufUpdate
     ["razor/updateCSharpBuffer"] = function(_err, result)
         local buf = documentstore.update_vbuf(result, razor.language_kinds.csharp)
         require("rzls.refresh").diagnostics.add(buf)
     end,
     ---@param _err lsp.ResponseError
-    ---@param result VBufUpdate
+    ---@param result razor.VBufUpdate
     ["razor/updateHtmlBuffer"] = function(_err, result)
         documentstore.update_vbuf(result, razor.language_kinds.html)
     end,

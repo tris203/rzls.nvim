@@ -32,16 +32,12 @@ local function roslyn_razor_provideDynamicFileHandler(_err, result, _ctx, _confi
             checksum = vd.checksum or "",
             checksumAlgorithm = vd.checksum_algorithm or 1,
             encodingCodePage = vd.encoding_code_page or vim.NIL,
-            updates = {
+            edits = {
                 {
-                    edits = {
-                        {
-                            newText = vd.content,
-                            span = {
-                                start = 0,
-                                length = 0,
-                            },
-                        },
+                    newText = vd.content,
+                    span = {
+                        start = 0,
+                        length = 0,
                     },
                 },
             },
@@ -60,7 +56,7 @@ local function roslyn_razor_provideDynamicFileHandler(_err, result, _ctx, _confi
             checksum = vd.checksum or "",
             checksumAlgorithm = vd.checksum_algorithm or 1,
             encodingCodePage = vd.encoding_code_page or vim.NIL,
-            updates = vim.NIL,
+            edits = {},
         }
         return resp
     else
@@ -69,12 +65,14 @@ local function roslyn_razor_provideDynamicFileHandler(_err, result, _ctx, _confi
         if vim.tbl_isempty(updates) then
             edits = nil
         else
-            ---@type razor.DynamicFileUpdate[]
-            edits = vim.iter(updates)
+            ---@type razor.razorTextChange[]
+            local full_edits = vim.iter(updates)
                 :map(function(v)
-                    return { edits = v.changes }
+                    return v.changes
                 end)
                 :totable()
+
+            edits = vim.iter(full_edits):flatten(1):totable()
         end
         ---@type razor.ProvideDynamicFileResponse
         local resp = {
@@ -84,7 +82,7 @@ local function roslyn_razor_provideDynamicFileHandler(_err, result, _ctx, _confi
             checksum = original_checksum,
             checksumAlgorithm = original_checksum_algorithm,
             encodingCodePage = original_encoding_code_page,
-            updates = edits or vim.NIL,
+            edits = edits or {},
         }
         return resp
     end
@@ -92,4 +90,10 @@ end
 
 return {
     [razor.notification.razor_provideDynamicFileInfo] = roslyn_razor_provideDynamicFileHandler,
+    ["razor/mapSpans"] = function(...)
+        vim.print(vim.inspect({ method = "razor/mapSpans", data = ... }))
+    end,
+    ["razor/mapTextChanges"] = function(...)
+        vim.print(vim.inspect({ method = "razor/mapTextChanges", data = ... }))
+    end,
 }
