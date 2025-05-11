@@ -66,6 +66,12 @@ function M.setup(config)
                     "true",
                     "--UpdateBuffersForClosedDocuments",
                     "true",
+                    "--forceRuntimeCodeGeneration",
+                    "false",
+                    "--SingleServerCompletionSupport",
+                    "true",
+                    "--useNewFormattingEngine",
+                    "true",
                 },
                 on_init = function(client, _initialize_result)
                     ---@diagnostic disable-next-line: undefined-field
