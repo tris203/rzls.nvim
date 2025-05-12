@@ -117,6 +117,7 @@ function M.setup(config)
         pattern = "razor",
         callback = function(ev)
             M.start_rzls()
+            assert(M.rzls_client_id, "Razor LSP client not started")
             vim.lsp.buf_attach_client(ev.buf, M.rzls_client_id)
 
             local aftershave_client_id = vim.lsp.start({
