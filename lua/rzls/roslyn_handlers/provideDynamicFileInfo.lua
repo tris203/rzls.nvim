@@ -7,7 +7,7 @@ local razor = require("rzls.razor")
 ---@param _config? table
 ---@return razor.ProvideDynamicFileResponse|nil
 ---@return lsp.ResponseError|nil
-local function roslyn_razor_provideDynamicFileHandler(_err, result, _ctx, _config)
+return function(_err, result, _ctx, _config)
     if result.razorDocument == nil then
         return nil, vim.lsp.rpc.rpc_response_error(-32602, "Missing razorDocument")
     end
@@ -87,13 +87,3 @@ local function roslyn_razor_provideDynamicFileHandler(_err, result, _ctx, _confi
         return resp
     end
 end
-
-return {
-    [razor.notification.razor_provideDynamicFileInfo] = roslyn_razor_provideDynamicFileHandler,
-    ["razor/mapSpans"] = function(...)
-        vim.print(vim.inspect({ method = "razor/mapSpans", data = ... }))
-    end,
-    ["razor/mapTextChanges"] = function(...)
-        vim.print(vim.inspect({ method = "razor/mapTextChanges", data = ... }))
-    end,
-}

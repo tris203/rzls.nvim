@@ -112,10 +112,9 @@ M.lsp_names = {
 }
 
 M.notification = {
+    razor_dynamicFileInfoChanged = "razor/dynamicFileInfoChanged",
     razor_namedPipeConnect = "razor/namedPipeConnect",
     razor_initialize = "razor/initialize",
-    razor_dynamicFileInfoChanged = "razor/dynamicFileInfoChanged",
-    razor_provideDynamicFileInfo = "razor/provideDynamicFileInfo",
 }
 
 ---@type table<string, vim.api.keyset.highlight>
