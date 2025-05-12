@@ -112,7 +112,6 @@ function M.update_vbuf(result, language_kind)
             false,
             string.format("Update recieved for unknown document: Uri: %s. LanguageKind: %d", razor_uri, language_kind)
         )
-        return
     end
 
     if result.previousWasEmpty and virtual_document.content ~= "" then
