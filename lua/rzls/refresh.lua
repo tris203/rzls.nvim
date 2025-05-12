@@ -54,12 +54,12 @@ end
 ---@param refresh_func rzls.RefreshFunc
 ---@return table
 function refresh_queue:new(refresh_func, delay)
+    local debounced = debounce(refresh_func, delay)
     return setmetatable({
         add = function(bufnr)
             if bufnr and not self[bufnr] then
                 self[bufnr] = true
             end
-            local debounced = debounce(refresh_func, delay)
             debounced(self)
         end,
     }, self)
@@ -84,7 +84,7 @@ end
 ---@type rzls.RefreshQueues
 local queue = {
     ---@diagnostic disable-next-line: assign-type-mismatch
-    diagnostics = refresh_queue:new(refresh_diagnostics, 1000),
+    diagnostics = refresh_queue:new(refresh_diagnostics, 500),
 }
 
 return queue
