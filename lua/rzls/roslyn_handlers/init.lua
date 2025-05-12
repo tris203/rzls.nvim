@@ -9,6 +9,6 @@ end
 return {
     ["razor/provideDynamicFileInfo"] = require("rzls.roslyn_handlers.provideDynamicFileInfo"),
     ["razor/removeDynamicFileInfo"] = not_implemented,
-    ["razor/mapSpans"] = not_implemented,
+    ["razor/mapSpans"] = require("rzls.roslyn_handlers.mapSpans"),
     ["razor/mapTextChanges"] = not_implemented,
 }
