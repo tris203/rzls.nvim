@@ -142,6 +142,10 @@ if roslyn_package:is_installed() then
             "--razorDesignTimePath="
                 .. vim.fs.joinpath(rzls_path, "Targets", "Microsoft.NET.Sdk.Razor.DesignTime.targets")
         )
+        vim.list_extend(cmd, {
+            "--extension",
+            vim.fs.joinpath(rzls_path, "RazorExtension", "Microsoft.VisualStudioCode.RazorExtension.dll"),
+        })
     end
 end
 ```
