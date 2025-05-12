@@ -31,6 +31,24 @@ local M = {}
 ---@class razor.MapToDocumentRangesResponse
 ---@field hostDocumentVersion integer
 ---@field ranges lsp.Range[]
+---@field spans razor.TextSpan[]
+
+---@class razor.razorMapSpansParams
+---@field csharpDocument lsp.TextDocumentIdentifier
+---@field ranges lsp.Range[]
+
+---@class razor.razorMapSpansResponse
+---@field ranges lsp.Range[]
+---@field spans razor.TextSpan[]
+---@field razorDocument lsp.TextDocumentIdentifier
+
+---@class razor.razorMapTextChangesParams
+---@field csharpDocument lsp.TextDocumentIdentifier
+---@field textChanges razor.razorTextChange[]
+
+---@class razor.razorMapTextChangesResponse
+---@field razorDocument lsp.TextDocumentIdentifier
+---@field textChanges razor.razorTextChange[]
 
 ---@class razor.ProvideSemanticTokensParams
 ---@field correlationId string
@@ -69,6 +87,9 @@ local M = {}
 ---@field checksum string
 ---@field checksumAlgorithm number
 ---@field encodingCodePage number | vim.NIL
+
+---@class razor.RemoveDyanamicFileParams
+---@field csharpDocument lsp.TextDocumentIdentifier
 
 ---@class razor.razorTextChange
 ---@field newText string
