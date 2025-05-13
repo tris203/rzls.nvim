@@ -23,9 +23,10 @@ local function ensure_rzls_started()
         local rzls_client = vim.lsp.get_client_by_id(rzls_client_id)
         assert(rzls_client, "Could not find Razor LSP client")
         Log.rzlsnvim = string.format("Razor LSP started with client id: %s from a roslyn handler", rzls_client_id)
-        vim.wait(10000, function()
+        local started = vim.wait(10000, function()
             return rzls_client.initialized
         end, 100)
+        assert(started, "Razor LSP did not start in time")
         Log.rzlsnvim = string.format("Razor LSP initialized: %s", rzls_client.initialized)
     end
 end
@@ -80,6 +81,8 @@ return function(_err, result, ctx, _config)
         return resp
     end
 
+    ---@type razor.razorTextChange[]
+    local edits = {}
     if rvd.buf then
         -- Open documents have didOpen/didChange to update the csharp buffer. Razor
         --does not send edits and instead lets vscode handle them.
@@ -97,18 +100,12 @@ return function(_err, result, ctx, _config)
         return resp
     else
         local updates, original_checksum, original_checksum_algorithm, original_encoding_code_page = vd:apply_edits()
-        local edits
         if vim.tbl_isempty(updates) then
-            edits = nil
+            edits = {}
         else
-            ---@type razor.razorTextChange[]
-            local full_edits = vim.iter(updates)
-                :map(function(v)
-                    return v.changes
-                end)
-                :totable()
-
-            edits = vim.iter(full_edits):flatten(1):totable()
+            for _, u in ipairs(updates) do
+                vim.list_extend(edits, u.changes)
+            end
         end
         ---@type razor.ProvideDynamicFileResponse
         local resp = {
@@ -118,7 +115,7 @@ return function(_err, result, ctx, _config)
             checksum = original_checksum,
             checksumAlgorithm = original_checksum_algorithm,
             encodingCodePage = original_encoding_code_page,
-            edits = edits or {},
+            edits = edits,
         }
         Log.rzlsnvim = string.format("Closed request for %s", result.razorDocument.uri)
         return resp

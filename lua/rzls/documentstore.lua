@@ -97,7 +97,7 @@ end
 
 ---@param result razor.VBufUpdate
 ---@param language_kind razor.LanguageKind
----@return integer --- the buffer number of the updated virtual document
+---@return integer? --- the buffer number of the updated virtual document
 function M.update_vbuf(result, language_kind)
     M.register_vbufs_by_path(result.hostDocumentFilePath, false)
     local razor_uri = vim.uri_from_fname(result.hostDocumentFilePath)

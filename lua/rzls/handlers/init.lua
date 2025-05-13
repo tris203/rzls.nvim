@@ -33,7 +33,9 @@ return {
     ---@param result razor.VBufUpdate
     ["razor/updateCSharpBuffer"] = function(_err, result)
         local buf = documentstore.update_vbuf(result, razor.language_kinds.csharp)
-        require("rzls.refresh").diagnostics.add(buf)
+        if buf then
+            require("rzls.refresh").diagnostics.add(buf)
+        end
     end,
     ---@param _err lsp.ResponseError
     ---@param result razor.VBufUpdate

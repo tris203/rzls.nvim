@@ -5,7 +5,8 @@ local _buffers = {}
 ---@field rzlsnvim string
 ---@field aftershave string
 
----@class rzls.Logger
+---@type rzls.Logger
+---@diagnostic disable-next-line: missing-fields
 local Logger = {
     _buffers = _buffers,
 }

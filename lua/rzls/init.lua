@@ -28,7 +28,7 @@ local function get_cmd_path(config)
 end
 
 ---@type rzls.Config
-local defaultConfg = {
+local defaultConfig = {
     on_attach = function()
         return nil
     end,
@@ -47,7 +47,7 @@ Log.rzlsnvim = "Added razor filetype"
 ---@param config rzls.Config
 function M.setup(config)
     Log.rzlsnvim = "Ran Setup"
-    local rzlsconfig = vim.tbl_deep_extend("force", defaultConfg, config)
+    local rzlsconfig = vim.tbl_deep_extend("force", defaultConfig, config)
     rzlsconfig.path = rzlsconfig.path or get_cmd_path(rzlsconfig)
 
     local au = vim.api.nvim_create_augroup("rzls", { clear = true })

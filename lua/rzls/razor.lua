@@ -64,8 +64,12 @@ local M = {}
 ---@field tokens integer[]
 ---@field hostDocumentSyncVersion integer
 
+---@class razor.TextDocumentIdentifierAndVersion
+---@field textDocumentIdentifier lsp.TextDocumentIdentifier
+---@field version integer
+
 ---@class razor.DelegatedCompletionParams
----@field identifier { textDocumentIdentifier: lsp.TextDocumentIdentifier, version: integer }
+---@field identifier razor.TextDocumentIdentifierAndVersion
 ---@field projectedPosition lsp.Position
 ---@field projectedKind razor.LanguageKind
 ---@field context lsp.CompletionContext
@@ -73,7 +77,7 @@ local M = {}
 ---@field shouldIncludeSnippets boolean
 
 ---@class razor.DelegatedCompletionItemResolveParams
----@field identifier { textDocumentIdentifier: lsp.TextDocumentIdentifier, version: integer }
+---@field identifier razor.TextDocumentIdentifierAndVersion
 ---@field completionItem lsp.CompletionItem
 ---@field originatingKind razor.LanguageKind
 
@@ -88,7 +92,7 @@ local M = {}
 ---@field checksumAlgorithm number
 ---@field encodingCodePage number | vim.NIL
 
----@class razor.RemoveDyanamicFileParams
+---@class razor.RemoveDynamicFileParams
 ---@field csharpDocument lsp.TextDocumentIdentifier
 
 ---@class razor.razorTextChange
@@ -99,18 +103,18 @@ local M = {}
 ---@field razorDocument lsp.TextDocumentIdentifier
 
 ---@class razor.DelegatedInlayHintParams
----@field identifier { textDocumentIdentifier: lsp.TextDocumentIdentifier, version: integer }
+---@field identifier razor.TextDocumentIdentifierAndVersion
 ---@field projectedKind razor.LanguageKind
 ---@field projectedRange lsp.Range
 
 ---@class razor.DelegatedInlayHintResolveParams
----@field identifier { textDocumentIdentifier: lsp.TextDocumentIdentifier, version: integer }
+---@field identifier razor.TextDocumentIdentifierAndVersion
 ---@field inlayHint lsp.InlayHint
 ---@field projectedKind razor.LanguageKind
 
 ---@class razor.CSharpPullDiagnosticParams
 ---@field correlationId string
----@field identifier { textDocumentIdentifier: lsp.TextDocumentIdentifier, version: integer }
+---@field identifier razor.TextDocumentIdentifierAndVersion
 
 ---@enum razor.LanguageKind
 M.language_kinds = {
