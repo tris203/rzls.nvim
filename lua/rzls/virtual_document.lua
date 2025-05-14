@@ -18,7 +18,7 @@ local Log = require("rzls.log")
 ---@field checksum string
 ---@field checksum_algorithm number
 ---@field encoding_code_page number
----@field updates VBufUpdate[]
+---@field updates razor.VBufUpdate[]
 local VirtualDocument = {}
 
 VirtualDocument.__index = VirtualDocument
@@ -53,7 +53,7 @@ function VirtualDocument:new(bufnr, kind, uri)
 end
 
 ---@param content string
----@param change Change
+---@param change razor.razorTextChange
 local function apply_change(content, change)
     local before = vim.fn.strcharpart(content, 0, change.span.start)
     local after = vim.fn.strcharpart(content, change.span.start + change.span.length)
@@ -79,7 +79,7 @@ function VirtualDocument:update_content()
     self.change_event:fire()
 end
 
----@return VBufUpdate[] edits
+---@return razor.VBufUpdate[] edits
 ---@return string original_checksum
 ---@return number original_checksum_algorithm
 ---@return number|vim.NIL original_encoding_code_page
@@ -288,6 +288,22 @@ function VirtualDocument:map_to_document_ranges(language_kind, ranges)
     return response.result
 end
 
+---try to attach the lsp
+---@return vim.lsp.Client?
+function VirtualDocument:attach_lsp()
+    local lsp = self:get_lsp_client()
+    if not lsp then
+        local client = vim.lsp.get_clients({ name = razor.lsp_names[self.kind] })[1]
+        if not client then
+            Log.rzlsnvim = "LSP client not found for " .. self.uri
+            return
+        end
+        vim.lsp.buf_attach_client(self.buf, client.id)
+        return client
+    end
+    return lsp
+end
+
 --- issues an LSP request to the virtual document.
 --- Please use by passing a method from `vim.lsp.protocl.Methods`
 --- and type the expected return value as optional.
@@ -297,10 +313,15 @@ end
 ---@return any|nil    # result on success, nil on failure.
 ---@return nil|lsp.ResponseError # nil on success, error message on failure.
 function VirtualDocument:lsp_request(method, params, buf)
+    assert(vim.api.nvim_buf_is_loaded(self.buf), "attempted to attach to unloaded buffer")
     local lsp = self:get_lsp_client()
     if not lsp then
-        Log.rzlsnvim = "[" .. method .. "]LSP client not found for " .. self.uri
-        return nil, vim.lsp.rpc_response_error(vim.lsp.protocol.ErrorCodes.InvalidRequest, "LSP client not found")
+        lsp = self:attach_lsp()
+        if not lsp then
+            --HACK: if we still dont have an lsp we are doomed
+            Log.rzlsnvim = "[" .. method .. "]LSP client not found for " .. self.uri
+            return nil, vim.lsp.rpc_response_error(vim.lsp.protocol.ErrorCodes.InvalidRequest, "LSP client not found")
+        end
     end
     --=TODO: Remove when 0.11 only
     ---@diagnostic disable-next-line: param-type-mismatch

@@ -1,5 +1,14 @@
 local M = {}
 
+---@class razor.VBufUpdate
+---@field checksum string
+---@field checksumAlgorithm number
+---@field encodingCodePage? number
+---@field previousWasEmpty boolean
+---@field hostDocumentFilePath string
+---@field hostDocumentVersion number
+---@field changes razor.razorTextChange[]
+
 ---@class razor.LanguageQueryParams
 ---@field position lsp.Position
 ---@field uri string
@@ -15,9 +24,31 @@ local M = {}
 ---@field kind razor.LanguageKind
 ---@field projectedRanges lsp.Range[]
 
+---@class razor.TextSpan
+---@field start integer
+---@field length integer
+
 ---@class razor.MapToDocumentRangesResponse
 ---@field hostDocumentVersion integer
 ---@field ranges lsp.Range[]
+---@field spans razor.TextSpan[]
+
+---@class razor.razorMapSpansParams
+---@field csharpDocument lsp.TextDocumentIdentifier
+---@field ranges lsp.Range[]
+
+---@class razor.razorMapSpansResponse
+---@field ranges lsp.Range[]
+---@field spans razor.TextSpan[]
+---@field razorDocument lsp.TextDocumentIdentifier
+
+---@class razor.razorMapTextChangesParams
+---@field csharpDocument lsp.TextDocumentIdentifier
+---@field textChanges razor.razorTextChange[]
+
+---@class razor.razorMapTextChangesResponse
+---@field razorDocument lsp.TextDocumentIdentifier
+---@field textChanges razor.razorTextChange[]
 
 ---@class razor.ProvideSemanticTokensParams
 ---@field correlationId string
@@ -33,8 +64,12 @@ local M = {}
 ---@field tokens integer[]
 ---@field hostDocumentSyncVersion integer
 
+---@class razor.TextDocumentIdentifierAndVersion
+---@field textDocumentIdentifier lsp.TextDocumentIdentifier
+---@field version integer
+
 ---@class razor.DelegatedCompletionParams
----@field identifier { textDocumentIdentifier: lsp.TextDocumentIdentifier, version: integer }
+---@field identifier razor.TextDocumentIdentifierAndVersion
 ---@field projectedPosition lsp.Position
 ---@field projectedKind razor.LanguageKind
 ---@field context lsp.CompletionContext
@@ -42,7 +77,7 @@ local M = {}
 ---@field shouldIncludeSnippets boolean
 
 ---@class razor.DelegatedCompletionItemResolveParams
----@field identifier { textDocumentIdentifier: lsp.TextDocumentIdentifier, version: integer }
+---@field identifier razor.TextDocumentIdentifierAndVersion
 ---@field completionItem lsp.CompletionItem
 ---@field originatingKind razor.LanguageKind
 
@@ -52,26 +87,34 @@ local M = {}
 
 ---@class razor.ProvideDynamicFileResponse
 ---@field csharpDocument? lsp.TextDocumentIdentifier
----@field updates? razor.DynamicFileUpdate[]
+---@field edits razor.razorTextChange[]
 ---@field checksum string
 ---@field checksumAlgorithm number
 ---@field encodingCodePage number | vim.NIL
 
----@class razor.DynamicFileUpdate
----@field edits Change[]
+---@class razor.RemoveDynamicFileParams
+---@field csharpDocument lsp.TextDocumentIdentifier
+
+---@class razor.razorTextChange
+---@field newText string
+---@field span razor.TextSpan
 
 ---@class razor.DynamicFileUpdatedParams
 ---@field razorDocument lsp.TextDocumentIdentifier
 
 ---@class razor.DelegatedInlayHintParams
----@field identifier { textDocumentIdentifier: lsp.TextDocumentIdentifier, version: integer }
+---@field identifier razor.TextDocumentIdentifierAndVersion
 ---@field projectedKind razor.LanguageKind
 ---@field projectedRange lsp.Range
 
 ---@class razor.DelegatedInlayHintResolveParams
----@field identifier { textDocumentIdentifier: lsp.TextDocumentIdentifier, version: integer }
+---@field identifier razor.TextDocumentIdentifierAndVersion
 ---@field inlayHint lsp.InlayHint
 ---@field projectedKind razor.LanguageKind
+
+---@class razor.CSharpPullDiagnosticParams
+---@field correlationId string
+---@field identifier razor.TextDocumentIdentifierAndVersion
 
 ---@enum razor.LanguageKind
 M.language_kinds = {
@@ -94,10 +137,9 @@ M.lsp_names = {
 }
 
 M.notification = {
+    razor_dynamicFileInfoChanged = "razor/dynamicFileInfoChanged",
     razor_namedPipeConnect = "razor/namedPipeConnect",
     razor_initialize = "razor/initialize",
-    razor_dynamicFileInfoChanged = "razor/dynamicFileInfoChanged",
-    razor_provideDynamicFileInfo = "razor/provideDynamicFileInfo",
 }
 
 ---@type table<string, vim.api.keyset.highlight>
