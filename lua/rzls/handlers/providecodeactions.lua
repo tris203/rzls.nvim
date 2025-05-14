@@ -8,15 +8,13 @@ local razor = require("rzls.razor")
 
 local empty_response = {}
 
----@param err lsp.ResponseError
+---@param _err lsp.ResponseError
 ---@param result rzls.razorDelegatedCodeAction
 ---@param _ctx lsp.HandlerContext
 ---@param _config table
 ---@return lsp.CodeAction | lsp.CodeAction[] | nil
 ---@return lsp.ResponseError | nil
-return function(err, result, _ctx, _config)
-    assert(not err, vim.inspect(err))
-
+return function(_err, result, _ctx, _config)
     local virtual_document = documentstore.get_virtual_document(
         result.codeActionParams.textDocument.uri,
         result.languageKind,
