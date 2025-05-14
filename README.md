@@ -23,7 +23,7 @@ auto-completion, go-to-definition, and more all from within Neovim 💻🔧
 | Signature Help        | ✅      |
 | Completions           | ✅      |
 | Inlay Hints           | ✅      |
-| Code Actions          | ❌      |
+| Code Actions          | ✅      |
 | Folding               | ✅      |
 | CodeLens              | ❌      |
 | Format New Files      | ❌      |
