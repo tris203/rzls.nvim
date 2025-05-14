@@ -209,6 +209,23 @@ function M.get_virtual_document(uri, type, version)
     return virtual_document
 end
 
+function M.remove_virtual_document(uri)
+    local doc = virtual_documents[uri]
+    if not doc then
+        return
+    end
+
+    if doc[razor.language_kinds.csharp].buf then
+        vim.api.nvim_buf_delete(doc[razor.language_kinds.csharp].buf, { force = true })
+    end
+
+    if doc[razor.language_kinds.html].buf then
+        vim.api.nvim_buf_delete(doc[razor.language_kinds.html].buf, { force = true })
+    end
+
+    virtual_documents[uri] = nil
+end
+
 --- Returns the razor bufnr for a given virtual buffer number
 ---@param bufnr integer
 ---@return rzls.VirtualDocument

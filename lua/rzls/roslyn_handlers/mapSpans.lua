@@ -1,5 +1,6 @@
 local razor = require("rzls.razor")
 local documentstore = require("rzls.documentstore")
+local helpers = require("rzls.roslyn_handlers.helpers")
 
 ---@type razor.razorMapSpansResponse
 local empty_response = {
@@ -9,13 +10,6 @@ local empty_response = {
     ranges = {},
     spans = {},
 }
-
----@param csharp_uri string
----@return string
----@return integer
-local function cs_uri_to_razor_uri(csharp_uri)
-    return csharp_uri:gsub("__virtual.cs$", "")
-end
 
 ---@param _err lsp.ResponseError
 ---@param result razor.razorMapSpansParams
@@ -27,7 +21,7 @@ return function(_err, result, _ctx, _config)
     if result.csharpDocument == nil then
         return nil, vim.lsp.rpc.rpc_response_error(-32602, "Missing csharpDocument")
     end
-    local razor_uri = cs_uri_to_razor_uri(result.csharpDocument.uri)
+    local razor_uri = helpers.cs_uri_to_razor_uri(result.csharpDocument.uri)
     local rvd = documentstore.get_virtual_document(razor_uri, razor.language_kinds.razor, "any")
     if not rvd then
         return empty_response, nil
