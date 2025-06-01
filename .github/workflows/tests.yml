@@ -18,7 +18,7 @@ jobs:
         # TODO:add windows tests back in when we implement path normalisation
         # os: [ubuntu-latest, windows-latest, macos-latest]
       fail-fast: false
-    name: Plenary Tests
+    name: mini.test
     steps:
       - name: checkout
         uses: actions/checkout@v4
