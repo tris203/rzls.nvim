@@ -226,7 +226,10 @@ end
 
 ---@param position lsp.Position
 ---@return razor.LanguageQueryResponse|nil    # result on success, nil on failure.
----@return nil|lsp.ResponseError # nil on success, error message on failure.
+-- Sends a "razor/languageQuery" LSP request for the given position in a Razor virtual document.
+-- Must be called from within a coroutine. Returns the query result on success, or an LSP response error on failure.
+-- @param position The LSP position (table with `line` and `character`) to query.
+-- @return The language query result table on success, or nil and an LSP response error on failure.
 function VirtualDocument:language_query(position)
     assert(self.kind == razor.language_kinds.razor, "Can only query ranges for razor documents")
     local lsp = self:get_lsp_client()
@@ -265,7 +268,11 @@ end
 ---@param language_kind razor.LanguageKind
 ---@param ranges lsp.Range[]
 ---@return razor.MapToDocumentRangesResponse|nil    # result on success, nil on failure.
----@return nil|lsp.ResponseError # nil on success, error message on failure.
+-- Maps projected ranges from a Razor virtual document back to their corresponding document ranges using an LSP request.
+-- @param language_kind The language kind for which to map ranges.
+-- @param ranges The list of projected ranges to map.
+-- @return The mapping result on success, or an LSP response error on failure.
+-- @error Raises an error if not called within a coroutine or if the document is not a Razor document.
 function VirtualDocument:map_to_document_ranges(language_kind, ranges)
     assert(self.kind == razor.language_kinds.razor, "Can only map to document ranges for razor documents")
     local lsp = self:get_lsp_client()
@@ -325,7 +332,12 @@ end
 ---@param params table
 ---@param buf number?
 ---@return any|nil    # result on success, nil on failure.
----@return nil|lsp.ResponseError # nil on success, error message on failure.
+-- Sends an asynchronous LSP request for the virtual document using the specified method and parameters.
+-- Must be called from within a coroutine; suspends execution until the LSP response is received.
+-- @param method The LSP method name to invoke.
+-- @param params The parameters to send with the request.
+-- @param buf (Optional) The buffer number to use for the request; defaults to the document's buffer.
+-- @return The result of the LSP request on success, or nil and an error object on failure.
 function VirtualDocument:lsp_request(method, params, buf)
     assert(vim.api.nvim_buf_is_loaded(self.buf), "attempted to attach to unloaded buffer")
     local lsp = self:get_lsp_client()
