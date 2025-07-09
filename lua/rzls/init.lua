@@ -54,6 +54,7 @@ function M.setup(config)
 
     local root_dir = vim.fn.getcwd()
     M.rzls_client_id = nil
+    M.aftershave_client_id = nil
 
     ---@return number?
     function M.start_rzls()
@@ -120,18 +121,15 @@ function M.setup(config)
             assert(M.rzls_client_id, "Razor LSP client not started")
             vim.lsp.buf_attach_client(ev.buf, M.rzls_client_id)
 
-            local aftershave_client_id = vim.lsp.start({
-                name = "aftershave",
-                root_dir = root_dir,
-                cmd = require("rzls.server.lsp").server,
-            })
-
-            if aftershave_client_id == nil then
-                vim.notify("Could not start aftershave LSP", vim.log.levels.ERROR, { title = "rzls.nvim" })
-                return
+            if not M.aftershave_client_id then
+                M.aftershave_client_id = vim.lsp.start({
+                    name = "aftershave",
+                    root_dir = root_dir,
+                    cmd = require("rzls.server.lsp").server,
+                })
             end
 
-            vim.lsp.buf_attach_client(ev.buf, aftershave_client_id)
+            vim.lsp.buf_attach_client(ev.buf, M.aftershave_client_id)
         end,
         group = au,
     })
