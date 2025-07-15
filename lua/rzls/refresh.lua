@@ -71,12 +71,14 @@ local function refresh_diagnostics(self)
         if type(bufnr) == "number" then
             if vim.api.nvim_buf_is_valid(bufnr) then
                 Log.rzlsnvim = string.format("Refreshing diagnostics for buffer: %d", bufnr)
-                vim.lsp.util._refresh(vim.lsp.protocol.Methods.textDocument_diagnostic, { bufnr = bufnr })
+                local params = { textDocument = vim.lsp.util.make_text_document_params(bufnr) }
+                vim.lsp.buf_request(bufnr, vim.lsp.protocol.Methods.textDocument_diagnostic, params)
             end
             local ok, rvd = pcall(documentstore.get_razor_document_by_bufnr, bufnr)
             if ok then
                 Log.rzlsnvim = string.format("Refreshing diagnostics for razor buffer: %d", rvd.buf)
-                vim.lsp.util._refresh(vim.lsp.protocol.Methods.textDocument_diagnostic, { bufnr = rvd.buf })
+                local params = { textDocument = vim.lsp.util.make_text_document_params(rvd.buf) }
+                vim.lsp.buf_request(rvd.buf, vim.lsp.protocol.Methods.textDocument_diagnostic, params)
             end
             self[bufnr] = nil
         end
