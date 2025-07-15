@@ -127,6 +127,15 @@ function M.setup(config)
                     root_dir = root_dir,
                     cmd = require("rzls.server.lsp").server,
                 })
+
+                if M.aftershave_client_id == nil then
+                    vim.notify(
+                        "Could not start Aftershave LSP",
+                        vim.log.levels.ERROR,
+                        { title = "rzls.nvim" }
+                    )
+                    return
+                end
             end
 
             vim.lsp.buf_attach_client(ev.buf, M.aftershave_client_id)
