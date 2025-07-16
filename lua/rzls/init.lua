@@ -72,8 +72,6 @@ function M.setup(config)
                 "true",
                 "--UpdateBuffersForClosedDocuments",
                 "true",
-                "--forceRuntimeCodeGeneration",
-                "false",
                 "--SingleServerCompletionSupport",
                 "true",
                 "--useNewFormattingEngine",
