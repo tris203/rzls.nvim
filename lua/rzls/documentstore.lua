@@ -146,9 +146,7 @@ function M.update_vbuf(result, language_kind)
             end
 
             for i, notify in ipairs(roslyn_notify_queue) do
-                --=TODO: Remove when 0.11 only
-                ---@diagnostic disable-next-line: param-type-mismatch
-                roslyn.notify(razor.notification.razor_dynamicFileInfoChanged, notify)
+                roslyn:notify(razor.notification.razor_dynamicFileInfoChanged, notify)
                 roslyn_notify_queue[i] = nil
             end
         end
@@ -255,18 +253,14 @@ function M.initialize(rzls_client_id)
     local function initialize_roslyn()
         local roslyn_client = vim.lsp.get_clients({ name = "roslyn" })[1]
 
-        --=TODO: Remove when 0.11 only
-        ---@diagnostic disable-next-line: param-type-mismatch
-        roslyn_client.notify(razor.notification.razor_initialize, {
+        roslyn_client:notify(razor.notification.razor_initialize, {
             pipeName = pipe_name,
         })
 
         local rzls_client = vim.lsp.get_client_by_id(rzls_client_id)
         assert(rzls_client, "rzls client not found")
 
-        --=TODO: Remove when 0.11 only
-        ---@diagnostic disable-next-line: param-type-mismatch
-        rzls_client.notify(razor.notification.razor_namedPipeConnect, {
+        rzls_client:notify(razor.notification.razor_namedPipeConnect, {
             pipeName = pipe_name,
         })
     end
