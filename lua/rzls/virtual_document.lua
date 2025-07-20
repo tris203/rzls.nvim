@@ -224,6 +224,7 @@ function VirtualDocument:index_of_position(position)
     return -1
 end
 
+---@async
 ---@param position lsp.Position
 ---@return razor.LanguageQueryResponse|nil    # result on success, nil on failure.
 ---@return nil|lsp.ResponseError # nil on success, error message on failure.
@@ -262,6 +263,7 @@ function VirtualDocument:language_query(position)
     return coroutine.yield()
 end
 
+---@async
 ---@param language_kind razor.LanguageKind
 ---@param ranges lsp.Range[]
 ---@return razor.MapToDocumentRangesResponse|nil    # result on success, nil on failure.
@@ -321,6 +323,7 @@ end
 --- issues an LSP request to the virtual document.
 --- Please use by passing a method from `vim.lsp.protocl.Methods`
 --- and type the expected return value as optional.
+---@async
 ---@param method string
 ---@param params table
 ---@param buf number?
