@@ -242,8 +242,6 @@ function VirtualDocument:language_query(position)
     lsp:request("razor/languageQuery", {
         position = position,
         uri = self.uri,
-        --=TODO: Remove when 0.11 only
-        ---@diagnostic disable-next-line: param-type-mismatch
     }, function(err, result)
         if not result or err then
             Log.rzlsnvim = "Language Query Request failed: " .. vim.inspect(err)
