@@ -39,7 +39,7 @@ return function(params)
                 line = wininfo[1].botline - 1,
                 character = (
                     string.len(
-                        vim.api.nvim_buf_get_lines(rvd.buf, wininfo[1].botline - 1, wininfo[1].botline, false)[1]
+                        vim.api.nvim_buf_get_lines(rvd.buf, wininfo[1].botline - 1, wininfo[1].botline, false)[1] or ""
                     )
                 ),
             },

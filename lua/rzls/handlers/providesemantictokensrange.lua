@@ -8,7 +8,7 @@ local empty_response = {}
 ---@param result razor.ProvideSemanticTokensParams
 ---@param _ctx lsp.HandlerContext
 ---@param _config table
----@return razor.ProvideDynamicFileResponse
+---@return razor.ProvideSemanticTokensResponse
 ---@return lsp.ResponseError?
 return function(_err, result, _ctx, _config)
     local vd = documentstore.get_virtual_document(

@@ -1,10 +1,13 @@
 local _buffers = {}
 
----@alias rzls.LogTypes "rzls" | "rzlsnvim" | "aftershave"
+---@class rzls.Logger
+---@field rzls string
+---@field rzlsnvim string
+---@field aftershave string
 
----@type table<rzls.LogTypes, string>
+---@type rzls.Logger
+---@diagnostic disable-next-line: missing-fields
 local Logger = {
-    ---@type table<rzls.LogTypes, vim.Ringbuf>
     _buffers = _buffers,
 }
 

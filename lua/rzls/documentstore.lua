@@ -8,7 +8,7 @@ local roslyn_notify_queue = {}
 
 local M = {}
 
----@type rzls.VirtualDocument<string, table<razor.LanguageKind, rzls.VirtualDocument>>
+---@type { [string]: rzls.VirtualDocument }
 local virtual_documents = {}
 
 ---Discover if doc is already open
@@ -45,7 +45,6 @@ function M.register_vbufs_by_path(current_file, ensure_open)
 
     if ensure_open then
         local buf = vim.uri_to_bufnr(current_file)
-        ---@type rzls.VirtualDocument
         local vd = virtual_documents[current_file]
         local success = vd:update_bufnr(buf)
         assert(success, "Failed to update bufnr for " .. current_file)
@@ -67,8 +66,8 @@ function M.register_vbufs_by_path(current_file, ensure_open)
     if ensure_open then
         local buf = vim.uri_to_bufnr(csharp_uri)
         vim.api.nvim_set_option_value("filetype", "cs", { buf = buf })
-        ---@type rzls.VirtualDocument
-        local cvd = virtual_documents[current_file][razor.language_kinds.csharp]
+        local cvd = M.get_virtual_document(current_file, razor.language_kinds.csharp, "any")
+        assert(cvd, "Failed to get virtual document for " .. csharp_uri)
         local success = cvd:update_bufnr(buf)
         assert(success, "Failed to update bufnr for " .. csharp_uri)
     end
@@ -88,20 +87,32 @@ function M.register_vbufs_by_path(current_file, ensure_open)
 
     if ensure_open then
         local buf = vim.uri_to_bufnr(html_uri)
-        ---@type rzls.VirtualDocument
-        local hvd = virtual_documents[current_file][razor.language_kinds.html]
+        vim.api.nvim_set_option_value("filetype", "html", { buf = buf })
+        local hvd = M.get_virtual_document(current_file, razor.language_kinds.html, "any")
+        assert(hvd, "Failed to get virtual document for " .. html_uri)
         local success = hvd:update_bufnr(buf)
         assert(success, "Failed to update bufnr for " .. html_uri)
     end
 end
 
----@param result VBufUpdate
+---@param result razor.VBufUpdate
 ---@param language_kind razor.LanguageKind
+---@return integer? --- the buffer number of the updated virtual document
 function M.update_vbuf(result, language_kind)
     M.register_vbufs_by_path(result.hostDocumentFilePath, false)
     local razor_uri = vim.uri_from_fname(result.hostDocumentFilePath)
-    ---@type rzls.VirtualDocument
-    local virtual_document = virtual_documents[razor_uri][language_kind]
+    local virtual_document = M.get_virtual_document(razor_uri, language_kind, "any")
+
+    assert(virtual_document, "received update for non-existent virtual document")
+
+    if not virtual_document then
+        Log.rzlsnvim =
+            string.format("Update recieved for unknown document: Uri: %s. LanguageKind: %d", razor_uri, language_kind)
+        assert(
+            false,
+            string.format("Update recieved for unknown document: Uri: %s. LanguageKind: %d", razor_uri, language_kind)
+        )
+    end
 
     if result.previousWasEmpty and virtual_document.content ~= "" then
         virtual_document.content = ""
@@ -131,7 +142,7 @@ function M.update_vbuf(result, language_kind)
 
             if not roslyn then
                 ---NOTE:there is no roslyn to notify so we will do it later
-                return
+                return virtual_document.buf
             end
 
             for i, notify in ipairs(roslyn_notify_queue) do
@@ -144,21 +155,7 @@ function M.update_vbuf(result, language_kind)
     virtual_document.checksum = result.checksum
     virtual_document.checksum_algorithm = result.checksumAlgorithm or 1
     virtual_document.encoding_code_page = result.encodingCodePage
-end
-
----Refreshes parent views of the given virtual document
----@param result VBufUpdate
-function M.refresh_parent_views(result)
-    local uri = vim.uri_from_fname(result.hostDocumentFilePath)
-    ---@type rzls.VirtualDocument?
-    local rvd = virtual_documents[uri]
-    if not rvd or rvd.kind ~= razor.language_kinds.razor then
-        assert(false, "Not a razor document")
-        return
-    end
-    if vim.lsp.inlay_hint.is_enabled({ bufnr = rvd.buf }) then
-        vim.lsp.inlay_hint.enable(true, { bufnr = rvd.buf })
-    end
+    return virtual_document.buf
 end
 
 ---@async
@@ -210,10 +207,48 @@ function M.get_virtual_document(uri, type, version)
     return virtual_document
 end
 
+function M.remove_virtual_document(uri)
+    local doc = virtual_documents[uri]
+    if not doc then
+        return
+    end
+
+    if doc[razor.language_kinds.csharp].buf then
+        vim.api.nvim_buf_delete(doc[razor.language_kinds.csharp].buf, { force = true })
+    end
+
+    if doc[razor.language_kinds.html].buf then
+        vim.api.nvim_buf_delete(doc[razor.language_kinds.html].buf, { force = true })
+    end
+
+    virtual_documents[uri] = nil
+end
+
+--- Returns the razor bufnr for a given virtual buffer number
+---@param bufnr integer
+---@return rzls.VirtualDocument
+function M.get_razor_document_by_bufnr(bufnr)
+    if bufnr == 0 then
+        bufnr = vim.api.nvim_get_current_buf()
+    end
+    for _, docs in pairs(virtual_documents) do
+        local virt_docs = {
+            razor = M.get_virtual_document(docs.uri, razor.language_kinds.razor, "any"),
+            csharp = M.get_virtual_document(docs.uri, razor.language_kinds.csharp, "any"),
+            html = M.get_virtual_document(docs.uri, razor.language_kinds.html, "any"),
+        }
+        if virt_docs.razor.buf == bufnr or virt_docs.csharp.buf == bufnr or virt_docs.html.buf == bufnr then
+            return virt_docs.razor
+        end
+    end
+    ---@diagnostic disable-next-line: missing-return
+    assert(false, "No virtual document found for bufnr: " .. bufnr)
+end
+
 local pipe_name
----@param client vim.lsp.Client
-function M.initialize(client)
-    pipe_name = utils.uuid()
+---@param rzls_client_id number
+function M.initialize(rzls_client_id)
+    pipe_name = pipe_name or utils.uuid()
 
     local function initialize_roslyn()
         local roslyn_client = vim.lsp.get_clients({ name = "roslyn" })[1]
@@ -222,7 +257,10 @@ function M.initialize(client)
             pipeName = pipe_name,
         })
 
-        client:notify(razor.notification.razor_namedPipeConnect, {
+        local rzls_client = vim.lsp.get_client_by_id(rzls_client_id)
+        assert(rzls_client, "rzls client not found")
+
+        rzls_client:notify(razor.notification.razor_namedPipeConnect, {
             pipeName = pipe_name,
         })
     end
