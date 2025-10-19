@@ -56,32 +56,38 @@ return function(params)
     end
 
     ---@type lsp.WorkspaceEdit
-    local mapped_workspaceedits = {}
+    local mapped_workspaceedits = {
+        documentChanges = {},
+    }
     for _, changes in ipairs(edits.documentChanges) do
-        local csharp_uri = changes.textDocument.uri
-        ---@type lsp.TextEdit[]
-        local remapped_edits = {}
-        for _, edit in ipairs(changes.edits) do
-            local remapped_response = rvd:map_to_document_ranges(razor.language_kinds.csharp, { edit.range })
-            if remapped_response ~= nil and remapped_response.ranges ~= nil then
-                for _, range in ipairs(remapped_response.ranges) do
-                    if range.start.line > 0 then
-                        table.insert(remapped_edits, { newText = edit.newText, range = remapped_response.ranges[1] })
+        local document_uri = changes.textDocument.uri
+        if document_uri:match(razor.virtual_suffixes.csharp .. "$") then
+            ---@type lsp.TextEdit[]
+            local remapped_edits = {}
+            for _, edit in ipairs(changes.edits) do
+                local remapped_response = rvd:map_to_document_ranges(razor.language_kinds.csharp, { edit.range })
+                if remapped_response ~= nil and remapped_response.ranges ~= nil then
+                    for _, range in ipairs(remapped_response.ranges) do
+                        if range.start.line > 0 then
+                            table.insert(
+                                remapped_edits,
+                                { newText = edit.newText, range = remapped_response.ranges[1] }
+                            )
+                        end
                     end
                 end
             end
-        end
-        if not vim.tbl_isempty(remapped_edits) then
-            mapped_workspaceedits = {
-                documentChanges = {
-                    {
-                        edits = remapped_edits,
-                        textDocument = {
-                            uri = remove_virtual_suffix(csharp_uri, "csharp"),
-                        },
+
+            if not vim.tbl_isempty(remapped_edits) then
+                table.insert(mapped_workspaceedits.documentChanges, {
+                    edits = remapped_edits,
+                    textDocument = {
+                        uri = remove_virtual_suffix(document_uri, "csharp"),
                     },
-                },
-            }
+                })
+            end
+        else
+            table.insert(mapped_workspaceedits.documentChanges, changes)
         end
     end
 
