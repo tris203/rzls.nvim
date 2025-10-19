@@ -46,7 +46,7 @@ return {
     ["razor/resolveCodeActions"] = require("rzls.handlers.resolvecodeactions"),
     ["razor/provideHtmlColorPresentation"] = not_supported,
     ["razor/provideHtmlDocumentColor"] = require("rzls.handlers.providehtmldocumentcolor"),
-    ["razor/provideSemanticTokensRange"] = require("rzls.handlers.providesemantictokensrange"),
+    ["razor/provideSemanticTokensRanges"] = require("rzls.handlers.providesemantictokensranges"),
     ["razor/foldingRange"] = require("rzls.handlers.foldingrange"),
 
     ["razor/htmlFormatting"] = require("rzls.handlers.htmlformatting"),
