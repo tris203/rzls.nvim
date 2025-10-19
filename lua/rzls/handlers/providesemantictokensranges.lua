@@ -4,22 +4,9 @@ local razor = require("rzls.razor")
 ---@type number[]
 local empty_response = {}
 
----@param ranges lsp.Range[]?
+---@param ranges lsp.Range[]
 ---@return lsp.Range
 local function reduce_ranges(ranges)
-    if ranges == nil or #ranges == 0 then
-        return {
-            start = {
-                line = 0,
-                character = 0,
-            },
-            ["end"] = {
-                line = 0,
-                character = 0,
-            },
-        }
-    end
-
     local min_start = ranges[1].start
     local max_end = ranges[1]["end"]
 
@@ -54,7 +41,8 @@ return function(_err, result, _ctx, _config)
         razor.language_kinds.csharp,
         result.requiredHostDocumentVersion
     )
-    if not vd then
+
+    if not vd or result.ranges == nil or #result.ranges == 0 then
         return { tokens = empty_response, hostDocumentSyncVersion = result.requiredHostDocumentVersion }, nil
     end
 
