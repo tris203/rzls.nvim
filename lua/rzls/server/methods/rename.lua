@@ -68,11 +68,8 @@ return function(params)
                 local remapped_response = rvd:map_to_document_ranges(razor.language_kinds.csharp, { edit.range })
                 if remapped_response ~= nil and remapped_response.ranges ~= nil then
                     for _, range in ipairs(remapped_response.ranges) do
-                        if range.start.line > 0 then
-                            table.insert(
-                                remapped_edits,
-                                { newText = edit.newText, range = remapped_response.ranges[1] }
-                            )
+                        if range.start.line >= 0 then
+                            table.insert(remapped_edits, { newText = edit.newText, range = range })
                         end
                     end
                 end
