@@ -7,18 +7,19 @@ local function tempdir(plugin)
     return vim.loop.os_tmpdir() .. "/" .. plugin
 end
 
-local plenary_dir = os.getenv("PLENARY_DIR") or tempdir("plenary.nvim")
-if vim.fn.isdirectory(plenary_dir) == 0 then
+local minitest_dir = os.getenv("MINI_TEST") or tempdir("mini.test")
+if vim.fn.isdirectory(minitest_dir) == 0 then
     vim.fn.system({
         "git",
         "clone",
-        "https://github.com/nvim-lua/plenary.nvim",
-        plenary_dir,
+        "https://github.com/echasnovski/mini.test",
+        minitest_dir,
     })
 end
+
 vim.opt.rtp:append(".")
-vim.opt.rtp:append(plenary_dir)
-require("plenary.busted")
+vim.opt.rtp:append(minitest_dir)
+require("mini.test").setup()
 
 vim.cmd("runtime plugin/plenary.vim")
 return M
