@@ -66,6 +66,8 @@ function M.register_vbufs_by_path(current_file, ensure_open)
     if ensure_open then
         local buf = vim.uri_to_bufnr(csharp_uri)
         vim.api.nvim_set_option_value("filetype", "cs", { buf = buf })
+        vim.api.nvim_set_option_value("buftype", "nowrite", { buf = buf })
+        vim.api.nvim_set_option_value("buflisted", false, { buf = buf })
         local cvd = M.get_virtual_document(current_file, razor.language_kinds.csharp, "any")
         assert(cvd, "Failed to get virtual document for " .. csharp_uri)
         local success = cvd:update_bufnr(buf)
@@ -88,6 +90,8 @@ function M.register_vbufs_by_path(current_file, ensure_open)
     if ensure_open then
         local buf = vim.uri_to_bufnr(html_uri)
         vim.api.nvim_set_option_value("filetype", "html", { buf = buf })
+        vim.api.nvim_set_option_value("buftype", "nowrite", { buf = buf })
+        vim.api.nvim_set_option_value("buflisted", false, { buf = buf })
         local hvd = M.get_virtual_document(current_file, razor.language_kinds.html, "any")
         assert(hvd, "Failed to get virtual document for " .. html_uri)
         local success = hvd:update_bufnr(buf)
@@ -270,30 +274,6 @@ function M.initialize(rzls_client_id)
     initialize_roslyn()
     vim.lsp.semantic_tokens.force_refresh(0)
 end
-
-vim.api.nvim_create_autocmd("LspAttach", {
-    callback = function(args)
-        local client = vim.lsp.get_client_by_id(args.data.client_id)
-        if not client then
-            return
-        end
-
-        local uri = vim.uri_from_bufnr(args.buf)
-        if client.name == razor.lsp_names[razor.language_kinds.csharp] then
-            if uri:match(razor.virtual_suffixes.csharp .. "$") then
-                vim.api.nvim_set_option_value("buftype", "nowrite", { buf = args.buf })
-                vim.api.nvim_set_option_value("buflisted", false, { buf = args.buf })
-            end
-        end
-
-        if client.name == razor.lsp_names[razor.language_kinds.html] then
-            if uri:match(razor.virtual_suffixes.html .. "$") then
-                vim.api.nvim_set_option_value("buftype", "nowrite", { buf = args.buf })
-                vim.api.nvim_set_option_value("buflisted", false, { buf = args.buf })
-            end
-        end
-    end,
-})
 
 local state = {
     get_docstore = function()
