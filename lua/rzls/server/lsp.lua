@@ -70,6 +70,7 @@ local noops = {
 function M.server()
     local srv = {}
     local closing = false
+    local req_id = 0
     Log.aftershave = "Started aftershave server"
 
     function srv.request(method, params, handler)
@@ -85,6 +86,8 @@ function M.server()
                 Log.aftershave = "Unhandled request " .. method
             end
         end)()
+        req_id = req_id + 1
+        return true, req_id
     end
 
     function srv.notify(method, _params)
@@ -95,6 +98,7 @@ function M.server()
                 Log.aftershave = "Unhandled notification " .. method
             end
         end)()
+        return true
     end
 
     function srv.is_closing()
