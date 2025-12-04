@@ -20,88 +20,84 @@ auto-completion, go-to-definition, and more all from within Neovim 💻🔧
 
 | Feature               | Support |
 | --------------------- | ------- |
-| Hover                 | ✅      |
-| Diagnositcs           | ✅      |
-| Go To Definition      | ✅      |
-| Go To References      | ✅      |
-| Semantic Highlighting | ✅      |
-| Formatting            | ✅      |
-| Rename Symbol         | ✅      |
-| Signature Help        | ✅      |
-| Completions           | ✅      |
-| Inlay Hints           | ✅      |
-| Code Actions          | ✅      |
-| Folding               | ✅      |
-| CodeLens              | ❌      |
-| Format New Files      | ❌      |
+| Hover                 | ✅       |
+| Diagnostics           | ✅       |
+| Go To Definition      | ✅       |
+| Go To References      | ✅       |
+| Semantic Highlighting | ✅       |
+| Formatting            | ✅       |
+| Rename Symbol         | ✅       |
+| Signature Help        | ✅       |
+| Completions           | ✅       |
+| Inlay Hints           | ✅       |
+| Code Actions          | ✅       |
+| Folding               | ✅       |
+| CodeLens              | ❌       |
+| Format New Files      | ❌       |
 
 > [!NOTE]
-> Semantic highlight groups need more configuration If you find a
-> property that isn't highlighted properly and is identified with `:Inspect`
-> please raise an issue, or a PR to link it to a highlight group.
-
-## Installing the LSP
-
-The LSP can be cloned and compiled from source from the `dotnet/razor` repo.
-
-> [!TIP]
-> Alternatively, if you use `mason` to manage your LSP installs. A registry
-> containing both Roslyn and rzls is
-> configured [here](https://github.com/Crashdummyy/mason-registry)
->
-> It can be included in your configuration like so:
->
-> ```lua
-> require("mason").setup({
->     registries = {
->         "github:mason-org/mason-registry",
->         "github:Crashdummyy/mason-registry",
->     },
-> })
-> ```
-
-## Configuration
-
-You can pass a configuration table to the `setup` function. The configuration
-options are:
-
-- `capabilities`: A table that defines the capabilities of the LSP client. If
-  you don't know what this is, it can either be omitted or found in the
-  documentation of your completion provider.
-- `path`: The path to the rzls executable if not installed via mason. If you
-  have installed via mason you can omit this option.
-- `on_attach`: A function that is called when the LSP client attaches to a
-  buffer. If you don't know what this is, or your on_attach function is provided
-  by an autocommand, omit the option, or pass an empty function.
+> Semantic highlight groups may need extra configuration.
+> If `:Inspect` shows a token that's not highlighted correctly, please open an issue or PR to map it to an appropriate highlight group.
+ 
+## Table of Contents
+- [rzls.nvim 🚀](#rzlsnvim-)
+  - [Description 📄](#description-)
+    - [Features](#features)
+  - [Table of Contents](#table-of-contents)
+  - [Dependencies](#dependencies)
+  - [Installing `rzls.nvim`](#installing-rzlsnvim)
+    - [lazy.nvim](#lazynvim)
+    - [vim.pack (Neovim v0.12+)](#vimpack-neovim-v012)
+  - [Plugin Configuration](#plugin-configuration)
+    - [Configuring `seblyng/roslyn.nvim`](#configuring-seblyngroslynnvim)
+      - [Manually](#manually)
+      - [Mason](#mason)
+    - [Configuring `rzls.nvim`](#configuring-rzlsnvim)
+  - [Additional Configuration](#additional-configuration)
+    - [Telescope.nvim](#telescopenvim)
+    - [Trouble.nvim](#troublenvim)
+  - [Example Configuration](#example-configuration)
+  - [Known Issues](#known-issues)
+  - [Contributing](#contributing)
+  - [Helping Out](#helping-out)
+  - [License](#license)
 
 ## Dependencies
 
-You must install the following plug-ins:
-
-- [`seblyng/roslyn.nvim`](https://github.com/seblyng/roslyn.nvim) for general
-  functionality
-- `html-lsp` for completions and formatting. You can install and configure it
-  via `mason` and `nvim-lspconfig`.
+- [`roslyn`](https://github.com/crashdummyy/roslynlanguageserver) - The C# language server. Required for all C# and Razor/Blazor integrations.<br/>
+- [`rzls`](https://github.com/crashdummyy/rzls) - The Razor language server. Handles Razor/Blazor/CSHTML integrations.<br/>
+- [`html-lsp`](https://github.com/microsoft/vscode-html-languageservice) - The HTML language server. Provides completions and formatting for HTML inside `.razor` files.<br/>
+- [`seblyng/roslyn.nvim`](https://github.com/seblyng/roslyn.nvim) - Neovim integration for `roslyn`. Handles communication between Neovim and the `roslyn` language server.<br/>
 
 > [!CAUTION]
-> Please see the Integration section for extra arguments that must be passed to
+> Please see the [configuring seblyng/roslyn.nvim](#configuring-seblyngroslynnvim) section for extra arguments that must be passed to
 > `roslyn.nvim` setup.
 
-## Integration
+## Installing `rzls.nvim`
 
-You also must configure the
-[`roslyn.nvim`](https://github.com/seblyng/roslyn.nvim) plugin to communicate
-with the rzls. To do so, you must pass the handlers defined in the
-`rzls.roslyn_handlers` module and adjust the CLI command that Roslyn uses.
+### lazy.nvim
 
-### Composing the command for Roslyn
+```lua
+return {
+    "tris203/rzls.nvim"
+}
+```
 
-To configure `roslyn.nvim`, you need to compose a shell command string with
-arguments for it. Some of these arguments are CLI-options relating to rzls. You
-can compose the command as follows, depending on whether you installed Roslyn
-and rzls manually or with mason.
+### vim.pack (Neovim v0.12+)
 
-Manually:
+```lua
+vim.pack.add({ "https://github.com/tris203/rzls.nvim.git" })
+```
+
+## Plugin Configuration
+
+### Configuring `seblyng/roslyn.nvim` 
+
+To ensure seamless communication between `roslyn.nvim` and `rzls`, you need to configure `roslyn.nvim` with specific command-line arguments and handlers provided by `rzls.nvim`. This involves composing the `roslyn` language server command with arguments that point to the installed `rzls`. You’ll also need to pass the handler functions defined in the `rzls.roslyn_handlers` module to `roslyn.nvim`'s setup.
+
+Below are examples showing how to assemble the `cmd` for both manual and Mason installations, followed by how to use this command in your `roslyn.nvim` `setup()`.
+
+#### Manually
 
 ```lua
 -- Adjust these paths to where you installed Roslyn and rzls.
@@ -115,17 +111,18 @@ local cmd = {
     "--logLevel=Information",
     "--extensionLogDirectory=" .. vim.fs.dirname(vim.lsp.get_log_path()),
     "--razorSourceGenerator=" .. vim.fs.joinpath(rzls_base_path, "Microsoft.CodeAnalysis.Razor.Compiler.dll"),
-    "--razorDesignTimePath="
-        .. vim.fs.joinpath(rzls_base_path, "Targets", "Microsoft.NET.Sdk.Razor.DesignTime.targets"),
+    "--razorDesignTimePath=" .. vim.fs.joinpath(rzls_base_path, "Targets", "Microsoft.NET.Sdk.Razor.DesignTime.targets"),
+    "--extension",
+    vim.fs.joinpath(rzls_base_path, "RazorExtension", "Microsoft.VisualStudioCode.RazorExtension.dll"),
 }
 ```
 
-With mason:
+#### Mason
 
 ```lua
-local mason_registry = require("mason-registry")
-
+require("mason-registry")
 local rzls_path = vim.fn.expand("$MASON/packages/rzls/libexec")
+
 local cmd = {
     "roslyn",
     "--stdio",
@@ -138,74 +135,37 @@ local cmd = {
 }
 ```
 
-Finally, use the composed `cmd` and rzls handlers like so:
-
+Finally, regardless of which method you used to compose the `cmd` table, use it together with `rzls.roslyn_handlers` in your `roslyn.nvim` setup like so:
 ```lua
 require("roslyn").setup({
     cmd = cmd,
     config = {
-        -- the rest of your Roslyn configuration
+        -- The rest of your Roslyn configuration
         handlers = require("rzls.roslyn_handlers"),
     },
 })
 ```
 
-## Example configuration
+### Configuring `rzls.nvim`
+
+You can customize `rzls.nvim` by passing a configuration table to its `setup` function. Here are the options:
+
+- **`capabilities`**  
+  A table describing what features your LSP client supports (like completion, hover, etc.).  
+  If you're using a completion plugin (like `nvim-cmp`), you can pass its capabilities here.
+  If you're unsure, you can leave this out or consult the documentation of your completion provider.
+
+- **`path`**  
+  The file system path to the `rzls` executable.  
+  If you installed `rzls` via Mason, you don't need to set this.  
+  But if you installed it manually, set this to the full path to your `rzls` binary.
+
+- **`on_attach`**  
+  A function called when the language server attaches to a buffer, often used to set up keymaps or other buffer-local settings.  
+  If you already manage `on_attach` globally (e.g., via autocommands), you can omit this or provide an empty function.
 
 ```lua
-return {
-    {
-        "seblyng/roslyn.nvim",
-        ft = { "cs", "razor" },
-        dependencies = {
-            {
-                -- By loading as a dependencies, we ensure that we are available to set
-                -- the handlers for Roslyn.
-                "tris203/rzls.nvim",
-                config = true,
-            },
-        },
-        config = function()
-            -- Use one of the methods in the Integration section to compose the command.
-            local cmd = {}
-
-            vim.lsp.config("roslyn", {
-                cmd = cmd,
-                handlers = require("rzls.roslyn_handlers"),
-                settings = {
-                    ["csharp|inlay_hints"] = {
-                        csharp_enable_inlay_hints_for_implicit_object_creation = true,
-                        csharp_enable_inlay_hints_for_implicit_variable_types = true,
-
-                        csharp_enable_inlay_hints_for_lambda_parameter_types = true,
-                        csharp_enable_inlay_hints_for_types = true,
-                        dotnet_enable_inlay_hints_for_indexer_parameters = true,
-                        dotnet_enable_inlay_hints_for_literal_parameters = true,
-                        dotnet_enable_inlay_hints_for_object_creation_parameters = true,
-                        dotnet_enable_inlay_hints_for_other_parameters = true,
-                        dotnet_enable_inlay_hints_for_parameters = true,
-                        dotnet_suppress_inlay_hints_for_parameters_that_differ_only_by_suffix = true,
-                        dotnet_suppress_inlay_hints_for_parameters_that_match_argument_name = true,
-                        dotnet_suppress_inlay_hints_for_parameters_that_match_method_intent = true,
-                    },
-                    ["csharp|code_lens"] = {
-                        dotnet_enable_references_code_lens = true,
-                    },
-                },
-            })
-            vim.lsp.enable("roslyn")
-        end,
-        init = function()
-            -- We add the Razor file types before the plugin loads.
-            vim.filetype.add({
-                extension = {
-                    razor = "razor",
-                    cshtml = "razor",
-                },
-            })
-        end,
-    },
-}
+require("rzls").setup({})
 ```
 
 ## Additional Configuration
@@ -219,7 +179,7 @@ to exclude references in the generated virtual files.
 ```lua
 require("telescope").setup({
     defaults = {
-        file_ignore_patterns = { "%__virtual.cs$" },
+        file_ignore_patterns = { "__virtual%.cs$" },
     },
 })
 ```
@@ -235,7 +195,7 @@ require("trouble").setup({
         diagnostics = {
             filter = function(items)
                 return vim.tbl_filter(function(item)
-                    return not string.match(item.basename, [[%__virtual.cs$]])
+                    return not string.match(item.basename, [[__virtual%.cs$]])
                 end, items)
             end,
         },
@@ -243,21 +203,24 @@ require("trouble").setup({
 })
 ```
 
+## Example Configuration
+
+For detailed setup, see the [configuration examples](./doc/CONFIGURATION.md).
+
 ## Known Issues
 
 - Native Windows support doesn't work at this time, due to path normalization.
-- Opening a CS file first means that Roslyn and rzls don't connect properly.
+- Opening a CS file first means that `roslyn` and `rzls` don't connect properly.
 
 ## Contributing
 
-This plugin is still under construction. The Razor Language Server (rzls) uses a
-variety of custom methods that need to be understood and implemented. We are
+This plugin is still under construction. The Razor Language Server (`rzls`) uses
+several custom methods that need to be understood and implemented. We are
 actively working on this and appreciate your patience.
 
 We welcome contributions from the community for support of new features, fixing
 bugs, issues or things on the TODO-list (Grep the code for `TODO`). If you have
-experience with LSP or
-Razor and would like to contribute, please open a Pull Request. If
+experience with LSP or Razor and would like to contribute, please open a Pull Request. If
 you encounter any issues or have suggestions for improvements, please open an
 Issue. Your input is valuable in making this plugin more robust and efficient.
 
@@ -268,3 +231,7 @@ anything you would like to discuss, or you want to help. Come say hi.
 
 If you want to help out, then please see the discussion here, and leave a
 comment with your details in this [discussion](https://github.com/tris203/rzls.nvim/discussions/1).
+
+## License
+
+This project is licensed under the [MIT license](LICENSE).
