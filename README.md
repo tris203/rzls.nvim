@@ -1,3 +1,10 @@
+> [!WARNING]
+>
+> This plugin is deprecated. Razor/CSHTML support is now available via cohosting
+> with the `roslyn` Language Server.
+> You should use `seblyng/roslyn.nvim` instead; this README
+> is retained for reference.
+
 # rzls.nvim 🚀
 
 ## Description 📄
